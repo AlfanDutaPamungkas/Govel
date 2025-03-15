@@ -120,6 +120,41 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 	return &user, err
 }
 
+func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
+	query := `
+		SELECT id, username, email, password, created_at
+		FROM users
+		WHERE id = $1 AND is_active = true
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var user User
+	err := s.db.QueryRow(
+		ctx,
+		query,
+		userID,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password.hash,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, err
+}
+
 func (s *UsersStore) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
 	return withTx(s.db, ctx, func(tx pgx.Tx) error {
 		if err := s.Create(ctx, tx, user); err != nil {
