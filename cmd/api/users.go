@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -57,4 +58,55 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		app.internalServerError(w, r, err)
 		return
 	}
+}
+
+func (app *application) getProfileHandler(w http.ResponseWriter, r *http.Request){
+	user := getUserFromCtx(r)
+
+	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+type CreateUpdateUsernamePayload struct {
+	Username string `json:"username" validate:"required,max=255"`
+}
+
+func (app *application) changeUsernameHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+
+	var payload CreateUpdateUsernamePayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	user.Username = payload.Username
+	user.UpdatedAt = time.Now()
+
+	if err := app.store.Users.UpdateUsername(r.Context(), user); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+func getUserFromCtx(r *http.Request) *store.User {
+	user, _ := r.Context().Value(userCtx).(*store.User)
+	return user
 }

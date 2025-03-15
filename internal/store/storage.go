@@ -23,6 +23,7 @@ type Storage struct {
 		GetByEmail(context.Context, string) (*User, error)
 		GetByID(context.Context, int64) (*User, error)
 		Delete(context.Context, int64) error
+		UpdateUsername(context.Context, *User) (error)
 	}
 }
 

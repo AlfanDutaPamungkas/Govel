@@ -23,6 +23,7 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  password  `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 	IsActive  bool      `json:"is_active"`
 	Role      string    `json:"-"`
 }
@@ -43,7 +44,6 @@ func (p *password) Set(text string) error {
 
 	return nil
 }
-
 
 func (p *password) Verify(pass string) bool {
 	err := bcrypt.CompareHashAndPassword(p.hash, []byte(pass))
@@ -87,7 +87,7 @@ func (s *UsersStore) Create(ctx context.Context, tx pgx.Tx, user *User) error {
 
 func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT id, username, email, password, created_at
+		SELECT id, username, email, password, is_active, created_at, updated_at
 		FROM users
 		WHERE email = $1 AND is_active = true
 	`
@@ -104,8 +104,10 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 		&user.ID,
 		&user.Username,
 		&user.Email,
+		&user.IsActive,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -122,7 +124,7 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 
 func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT id, username, email, password, created_at
+		SELECT id, username, email, password, is_active, created_at, updated_at
 		FROM users
 		WHERE id = $1 AND is_active = true
 	`
@@ -140,7 +142,9 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.Username,
 		&user.Email,
 		&user.Password.hash,
+		&user.IsActive,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -153,6 +157,36 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	}
 
 	return &user, err
+}
+
+func (s *UsersStore) UpdateUsername(ctx context.Context, user *User) (error) {
+	query := `
+		update users
+		SET username = $1
+		WHERE id = $2
+		RETURNING id , username
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := s.db.QueryRow(
+		ctx,
+		query,
+		user.Username,
+		user.ID,
+	).Scan(&user.ID, &user.Username)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *UsersStore) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {

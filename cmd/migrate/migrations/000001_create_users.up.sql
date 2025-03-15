@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS users(
     password bytea NOT NULL,
     is_active boolean NOT NULL DEFAULT FALSE,
     role varchar(20) NOT NULL DEFAULT 'user',
-    created_at timestamp(9) with time zone NOT NULL DEFAULT NOW()
+    created_at timestamp(0) with time zone NOT NULL DEFAULT NOW()
 );
