@@ -93,11 +93,11 @@ func (app *application) updateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if payload.Username != ""{
+	if payload.Username != "" {
 		user.Username = payload.Username
 	}
 
-	if payload.Email != ""{
+	if payload.Email != "" {
 		user.Email = payload.Email
 		user.TokenVersion++
 	}
@@ -115,6 +115,48 @@ func (app *application) updateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+type ChangePasswordPayload struct {
+	Password string `json:"password" validate:"required,min=3,max=72"`
+}
+
+func (app *application) changePassword(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+
+	var payload ChangePasswordPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := user.Password.Set(payload.Password); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	user.UpdatedAt = time.Now()
+	user.TokenVersion++
+
+	if err := app.store.Users.Update(r.Context(), user); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, "password changed succesfully"); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

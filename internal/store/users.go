@@ -165,8 +165,8 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 func (s *UsersStore) Update(ctx context.Context, user *User) error {
 	query := `
 		update users
-		SET username = $1, email = $2, token_version = $3, updated_at = $4
-		WHERE id = $5
+		SET username = $1, email = $2, token_version = $3, password = $4, updated_at = $5
+		WHERE id = $6
 		RETURNING id , username, email, token_version
 	`
 
@@ -179,6 +179,7 @@ func (s *UsersStore) Update(ctx context.Context, user *User) error {
 		user.Username,
 		user.Email,
 		user.TokenVersion,
+		user.Password.hash,
 		user.UpdatedAt,
 		user.ID,
 	).Scan(&user.ID, &user.Username, &user.Email, &user.TokenVersion)

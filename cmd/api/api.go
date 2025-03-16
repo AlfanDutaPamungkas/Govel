@@ -91,6 +91,7 @@ func (app *application) mount() http.Handler {
 
 				r.Get("/", app.getProfileHandler)
 				r.Patch("/", app.updateHandler)
+				r.Patch("/change-password", app.changePassword)
 			})
 
 			r.Route("/{userID}", func(r chi.Router) {
