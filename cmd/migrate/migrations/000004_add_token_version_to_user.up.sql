@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD COLUMN token_version int NOT NULL DEFAULT 1;

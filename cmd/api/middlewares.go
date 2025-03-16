@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -43,6 +44,17 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 		user, err := app.store.Users.GetByID(ctx, userID)
 		if err != nil {
 			app.unauthorizedResponse(w, r, err)
+			return
+		}
+
+		tokenVersion, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["token_version"]), 10, 64)
+		if err != nil {
+			app.unauthorizedResponse(w, r, err)
+			return
+		}
+
+		if tokenVersion != user.TokenVersion {
+			app.unauthorizedResponse(w, r, errors.New("token revoked"))
 			return
 		}
 

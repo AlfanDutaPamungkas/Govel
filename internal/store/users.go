@@ -18,14 +18,15 @@ var (
 )
 
 type User struct {
-	ID        int64     `json:"id"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	Password  password  `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	IsActive  bool      `json:"is_active"`
-	Role      string    `json:"-"`
+	ID           int64     `json:"id"`
+	Username     string    `json:"username"`
+	Email        string    `json:"email"`
+	Password     password  `json:"-"`
+	IsActive     bool      `json:"is_active"`
+	Role         string    `json:"-"`
+	TokenVersion int64       `json:"token_version"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type password struct {
@@ -87,7 +88,7 @@ func (s *UsersStore) Create(ctx context.Context, tx pgx.Tx, user *User) error {
 
 func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT id, username, email, password, is_active, created_at, updated_at
+		SELECT id, username, email, password, is_active, token_version, created_at, updated_at
 		FROM users
 		WHERE email = $1 AND is_active = true
 	`
@@ -104,8 +105,9 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 		&user.ID,
 		&user.Username,
 		&user.Email,
-		&user.IsActive,
 		&user.Password.hash,
+		&user.IsActive,
+		&user.TokenVersion,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -124,7 +126,7 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 
 func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT id, username, email, password, is_active, created_at, updated_at
+		SELECT id, username, email, password, is_active, token_version, created_at, updated_at
 		FROM users
 		WHERE id = $1 AND is_active = true
 	`
@@ -143,6 +145,7 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.Email,
 		&user.Password.hash,
 		&user.IsActive,
+		&user.TokenVersion,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -159,12 +162,12 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	return &user, err
 }
 
-func (s *UsersStore) UpdateUsername(ctx context.Context, user *User) (error) {
+func (s *UsersStore) Update(ctx context.Context, user *User) error {
 	query := `
 		update users
-		SET username = $1
-		WHERE id = $2
-		RETURNING id , username
+		SET username = $1, email = $2, token_version = $3, updated_at = $4
+		WHERE id = $5
+		RETURNING id , username, email, token_version
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -174,8 +177,11 @@ func (s *UsersStore) UpdateUsername(ctx context.Context, user *User) (error) {
 		ctx,
 		query,
 		user.Username,
+		user.Email,
+		user.TokenVersion,
+		user.UpdatedAt,
 		user.ID,
-	).Scan(&user.ID, &user.Username)
+	).Scan(&user.ID, &user.Username, &user.Email, &user.TokenVersion)
 
 	if err != nil {
 		switch {
@@ -258,7 +264,7 @@ func (s *UsersStore) Activate(ctx context.Context, token string) error {
 		}
 
 		user.IsActive = true
-		if err := s.update(ctx, tx, user); err != nil {
+		if err := s.changeIsActive(ctx, tx, user); err != nil {
 			return err
 		}
 
@@ -305,17 +311,17 @@ func (s *UsersStore) getUserFromInvitation(ctx context.Context, tx pgx.Tx, token
 	return user, nil
 }
 
-func (s *UsersStore) update(ctx context.Context, tx pgx.Tx, user *User) error {
+func (s *UsersStore) changeIsActive(ctx context.Context, tx pgx.Tx, user *User) error {
 	query := `
 		UPDATE users 
-		SET username = $1, email = $2, is_active = $3
-		WHERE id = $4
+		SET is_active = $1
+		WHERE id = $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := tx.Exec(ctx, query, user.Username, user.Email, user.IsActive, user.ID)
+	_, err := tx.Exec(ctx, query, user.IsActive, user.ID)
 	if err != nil {
 		return err
 	}

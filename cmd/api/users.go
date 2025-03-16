@@ -60,7 +60,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) getProfileHandler(w http.ResponseWriter, r *http.Request){
+func (app *application) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
@@ -70,10 +70,11 @@ func (app *application) getProfileHandler(w http.ResponseWriter, r *http.Request
 }
 
 type CreateUpdateUsernamePayload struct {
-	Username string `json:"username" validate:"required,max=255"`
+	Username string `json:"username" validate:"max=255"`
+	Email    string `json:"email" validate:"omitempty,email,max=255"`
 }
 
-func (app *application) changeUsernameHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) updateHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
 	var payload CreateUpdateUsernamePayload
@@ -87,10 +88,23 @@ func (app *application) changeUsernameHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	user.Username = payload.Username
+	if payload.Email == "" && payload.Username == "" {
+		app.badRequestResponse(w, r, errors.New("please provide either email or username"))
+		return
+	}
+
+	if payload.Username != ""{
+		user.Username = payload.Username
+	}
+
+	if payload.Email != ""{
+		user.Email = payload.Email
+		user.TokenVersion++
+	}
+
 	user.UpdatedAt = time.Now()
 
-	if err := app.store.Users.UpdateUsername(r.Context(), user); err != nil {
+	if err := app.store.Users.Update(r.Context(), user); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)

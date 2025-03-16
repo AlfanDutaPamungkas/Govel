@@ -90,7 +90,7 @@ func (app *application) mount() http.Handler {
 				r.Use(app.AuthTokenMiddleware)
 
 				r.Get("/", app.getProfileHandler)
-				r.Put("/change-username", app.changeUsernameHandler)
+				r.Patch("/", app.updateHandler)
 			})
 
 			r.Route("/{userID}", func(r chi.Router) {
