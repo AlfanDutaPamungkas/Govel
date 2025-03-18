@@ -13,6 +13,7 @@ const (
 	FromName            = "Govel"
 	maxRetries          = 3
 	UserWelcomeTemplate = "user_invitations.tmpl"
+	ForgotPassReqTemplate = "reset_password_req.tmpl"
 )
 
 //go:embed "templates"

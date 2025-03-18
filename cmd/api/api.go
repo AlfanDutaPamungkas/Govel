@@ -22,12 +22,13 @@ type application struct {
 }
 
 type config struct {
-	addr        string
-	env         string
-	db          dbConfig
-	mail        mailConfig
-	frontendURL string
-	auth        authConfig
+	addr          string
+	env           string
+	db            dbConfig
+	mail          mailConfig
+	frontendURL   string
+	auth          authConfig
+	ForgotPassExp time.Duration
 }
 
 type authConfig struct {
@@ -81,6 +82,8 @@ func (app *application) mount() http.Handler {
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
 			r.Post("/token", app.createTokenHandler)
+			r.Post("/forgot-password", app.forgotPasswordHandler)
+			r.Patch("/reset-password/{token}", app.resetPasswordHandler)
 		})
 
 		r.Route("/users", func(r chi.Router) {
@@ -91,7 +94,7 @@ func (app *application) mount() http.Handler {
 
 				r.Get("/", app.getProfileHandler)
 				r.Patch("/", app.updateHandler)
-				r.Patch("/change-password", app.changePassword)
+				r.Patch("/change-password", app.changePasswordHandler)
 			})
 
 			r.Route("/{userID}", func(r chi.Router) {

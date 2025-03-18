@@ -24,6 +24,9 @@ type Storage struct {
 		GetByID(context.Context, int64) (*User, error)
 		Delete(context.Context, int64) error
 		Update(context.Context, *User) (error)
+		CreateForgotPassReq(context.Context, string, int64, time.Duration) error
+		DeleteForgotPassReq(context.Context, string) error
+		ResetPassword(context.Context, string, string) error
 	}
 }
 

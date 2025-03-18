@@ -16,7 +16,6 @@ const userCtx userKey = "user"
 
 func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	app.logger.Info(token)
 	err := app.store.Users.Activate(r.Context(), token)
 	if err != nil {
 		switch err {
@@ -124,7 +123,7 @@ type ChangePasswordPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
-func (app *application) changePassword(w http.ResponseWriter, r *http.Request) {
+func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
 	var payload ChangePasswordPayload

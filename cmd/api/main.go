@@ -19,6 +19,7 @@ func main() {
 	cfg := config{
 		addr: env.GetEnv("PORT", ":8080"),
 		env:  env.GetEnv("env", "DEVELOPMENT"),
+		ForgotPassExp: time.Hour,
 		db: dbConfig{
 			addr:         env.GetEnv("DB_ADDR", "postgres://user:password@localhost:5432/mydb?sslmode=disable"),
 			maxOpenConns: env.GetIntEnv("DB_MAX_OPEN_CONNS", 30),

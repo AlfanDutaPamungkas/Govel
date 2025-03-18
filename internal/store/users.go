@@ -24,7 +24,7 @@ type User struct {
 	Password     password  `json:"-"`
 	IsActive     bool      `json:"is_active"`
 	Role         string    `json:"-"`
-	TokenVersion int64       `json:"token_version"`
+	TokenVersion int64     `json:"token_version"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -344,4 +344,99 @@ func (s *UsersStore) deleteUserInvitations(ctx context.Context, tx pgx.Tx, userI
 	}
 
 	return nil
+}
+
+func (s *UsersStore) CreateForgotPassReq(ctx context.Context, token string, userID int64, expiry time.Duration) error {
+	query := `
+		INSERT INTO forgot_pass_requests (token, user_id, expiry)
+		VALUES ($1, $2, $3)
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := s.db.Exec(ctx, query, token, userID, time.Now().Add(expiry))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UsersStore) DeleteForgotPassReq(ctx context.Context, token string) error {
+	query := `
+		DELETE FROM forgot_pass_requests WHERE token = $1
+	`
+
+	hash := sha256.Sum256([]byte(token))
+	hashToken := hex.EncodeToString(hash[:])
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := s.db.Exec(ctx, query, hashToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UsersStore) ResetPassword(ctx context.Context, token string, password string) error {
+	return withTx(s.db, ctx, func(tx pgx.Tx) error {
+		user, err := s.getForgotPassReq(ctx, tx, token)
+		if err != nil {
+			return err
+		}
+
+		if err = user.Password.Set(password); err != nil {
+			return err
+		}
+
+		user.TokenVersion++
+		user.UpdatedAt = time.Now()
+
+		if err = s.Update(ctx, user); err != nil {
+			return err
+		}
+
+		if err = s.DeleteForgotPassReq(ctx, token); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UsersStore) getForgotPassReq(ctx context.Context, tx pgx.Tx, token string) (*User, error) {
+	query := `
+		SELECT u.id, u.username, u.email
+		FROM users u
+		JOIN forgot_pass_requests fp ON u.id = fp.user_id
+		WHERE fp.token = $1 AND fp.expiry > $2
+	`
+
+	hash := sha256.Sum256([]byte(token))
+	hashToken := hex.EncodeToString(hash[:])
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	user := &User{}
+	err := tx.QueryRow(ctx, query, hashToken, time.Now()).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+	)
+
+	if err != nil {
+		switch err {
+		case pgx.ErrNoRows:
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return user, nil
 }
