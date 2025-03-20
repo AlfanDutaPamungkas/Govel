@@ -27,7 +27,7 @@ type CreateNovelPayload struct {
 func (app *application) createNovelHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	file, fileHeader, err := r.FormFile("Image")
+	file, fileHeader, err := r.FormFile("image")
 	if err != nil {
 		file = nil
 		fileHeader = nil
@@ -106,26 +106,63 @@ func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if payload.Title != ""{
+	if payload.Title != "" {
 		novel.Title = payload.Title
 	}
 
-	if payload.Author != ""{
+	if payload.Author != "" {
 		novel.Author = payload.Author
 	}
 
-	if payload.Synopsis != ""{
+	if payload.Synopsis != "" {
 		novel.Synopsis = payload.Synopsis
 	}
 
-	if payload.Genre != ""{
+	if payload.Genre != "" {
 		genres := helper.ConvertGenre(payload.Genre)
 		novel.Genre = genres
 	}
 
 	novel.UpdatedAt = time.Now()
 
-	if err := app.store.Novels.Update(r.Context(), novel); err != nil{
+	if err := app.store.Novels.Update(r.Context(), novel); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, novel); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (app *application) changeNovelImageHandler(w http.ResponseWriter, r *http.Request) {
+	novel := getNovelFromCtx(r)
+	ctx := r.Context()
+
+	file, fileHeader, err := r.FormFile("image")
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	} 
+
+	defer file.Close()
+
+	imageUrl, err := cld.UploadImage(ctx, app.cld, file, fileHeader)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	novel.ImageURL = imageUrl
+	novel.UpdatedAt = time.Now()
+
+	if err := app.store.Novels.Update(r.Context(), novel); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)

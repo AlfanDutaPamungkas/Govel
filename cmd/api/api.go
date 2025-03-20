@@ -117,6 +117,7 @@ func (app *application) mount() http.Handler {
 				r.Use(app.novelsContextMiddleware)
 
 				r.With(app.AdminOnly()).Patch("/", app.updateNovelHandler)
+				r.With(app.AdminOnly()).Patch("/image", app.changeNovelImageHandler)
 				r.With(app.AdminOnly()).Delete("/", app.deleteNovelHandler)
 			})
 

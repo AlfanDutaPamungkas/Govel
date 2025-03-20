@@ -92,9 +92,9 @@ func (n *NovelsStore) GetByID(ctx context.Context, novelID int64) (*Novel, error
 func (n *NovelsStore) Update(ctx context.Context, novel *Novel) (error) {
 	query := `
 		update novels
-		SET title = $1, author = $2, synopsis = $3, genre = $4, updated_at = $5
-		WHERE id = $6
-		RETURNING id, title, author, synopsis, genre, created_at, updated_at
+		SET title = $1, author = $2, synopsis = $3, genre = $4, image_url = $5, updated_at = $6
+		WHERE id = $7
+		RETURNING id, title, author, synopsis, genre, image_url, created_at, updated_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -107,6 +107,7 @@ func (n *NovelsStore) Update(ctx context.Context, novel *Novel) (error) {
 		novel.Author,
 		novel.Synopsis,
 		novel.Genre,
+		novel.ImageURL,
 		novel.UpdatedAt,
 		novel.ID,
 	).Scan(
@@ -115,6 +116,7 @@ func (n *NovelsStore) Update(ctx context.Context, novel *Novel) (error) {
 		&novel.Author,
 		&novel.Synopsis,
 		&novel.Genre,
+		&novel.ImageURL,
 		&novel.CreatedAt,
 		&novel.UpdatedAt,
 	)
