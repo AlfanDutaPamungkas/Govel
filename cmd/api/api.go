@@ -97,7 +97,7 @@ func (app *application) mount() http.Handler {
 				r.Use(app.AuthTokenMiddleware)
 
 				r.Get("/", app.getProfileHandler)
-				r.Patch("/", app.updateHandler)
+				r.Patch("/", app.updateUserHandler)
 				r.Patch("/change-password", app.changePasswordHandler)
 			})
 
@@ -112,6 +112,14 @@ func (app *application) mount() http.Handler {
 			r.Use(app.AuthTokenMiddleware)
 
 			r.With(app.AdminOnly()).Post("/", app.createNovelHandler)
+
+			r.Route("/{novelID}", func(r chi.Router) {
+				r.Use(app.novelsContextMiddleware)
+
+				r.With(app.AdminOnly()).Patch("/", app.updateNovelHandler)
+				r.With(app.AdminOnly()).Delete("/", app.deleteNovelHandler)
+			})
+
 		})
 	})
 

@@ -31,6 +31,8 @@ type Storage struct {
 
 	Novels interface {
 		Create(context.Context, *Novel) error
+		GetByID(context.Context, int64) (*Novel, error)
+		Update(context.Context, *Novel) (error)
 	}
 
 	Chapters interface {

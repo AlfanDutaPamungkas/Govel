@@ -73,7 +73,7 @@ type CreateUpdateUsernamePayload struct {
 	Email    string `json:"email" validate:"omitempty,email,max=255"`
 }
 
-func (app *application) updateHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
 	var payload CreateUpdateUsernamePayload
