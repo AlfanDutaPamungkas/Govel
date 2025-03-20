@@ -149,7 +149,7 @@ func (app *application) changeNovelImageHandler(w http.ResponseWriter, r *http.R
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
-	} 
+	}
 
 	defer file.Close()
 
@@ -179,7 +179,27 @@ func (app *application) changeNovelImageHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "novelID")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 
+	if err := app.store.Novels.Delete(r.Context(), id); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 }
 
 func (app *application) novelsContextMiddleware(next http.Handler) http.Handler {

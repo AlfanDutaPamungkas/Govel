@@ -89,7 +89,7 @@ func (n *NovelsStore) GetByID(ctx context.Context, novelID int64) (*Novel, error
 	return &novel, err
 }
 
-func (n *NovelsStore) Update(ctx context.Context, novel *Novel) (error) {
+func (n *NovelsStore) Update(ctx context.Context, novel *Novel) error {
 	query := `
 		update novels
 		SET title = $1, author = $2, synopsis = $3, genre = $4, image_url = $5, updated_at = $6
@@ -121,6 +121,25 @@ func (n *NovelsStore) Update(ctx context.Context, novel *Novel) (error) {
 		&novel.UpdatedAt,
 	)
 
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (n *NovelsStore) Delete(ctx context.Context, novelID int64) error {
+	query := `DELETE FROM novels WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := n.db.Exec(ctx, query, novelID)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
