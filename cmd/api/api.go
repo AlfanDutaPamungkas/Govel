@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/AlfanDutaPamungkas/Govel/internal/auth"
+	cld "github.com/AlfanDutaPamungkas/Govel/internal/cloudinary"
 	"github.com/AlfanDutaPamungkas/Govel/internal/mailer"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -19,16 +21,18 @@ type application struct {
 	store         store.Storage
 	mailer        *mailer.SMTPMailer
 	authenticator auth.Authenticator
+	cld           *cloudinary.Cloudinary
 }
 
 type config struct {
-	addr          string
-	env           string
-	db            dbConfig
-	mail          mailConfig
-	frontendURL   string
-	auth          authConfig
-	ForgotPassExp time.Duration
+	addr             string
+	env              string
+	db               dbConfig
+	mail             mailConfig
+	frontendURL      string
+	auth             authConfig
+	ForgotPassExp    time.Duration
+	cloudinaryConfig *cld.CloudinaryConfig
 }
 
 type authConfig struct {
@@ -102,6 +106,12 @@ func (app *application) mount() http.Handler {
 
 				r.Get("/", app.getUserHandler)
 			})
+		})
+
+		r.Route("/novels", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+
+			r.With(app.AdminOnly()).Post("/", app.createNovelHandler)
 		})
 	})
 

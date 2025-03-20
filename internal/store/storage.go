@@ -28,11 +28,21 @@ type Storage struct {
 		DeleteForgotPassReq(context.Context, string) error
 		ResetPassword(context.Context, string, string) error
 	}
+
+	Novels interface {
+		Create(context.Context, *Novel) error
+	}
+
+	Chapters interface {
+
+	}
 }
 
 func NewStorage(db *pgxpool.Pool) Storage {
 	return Storage{
 		Users: &UsersStore{db},
+		Novels: &NovelsStore{db},
+		Chapters: &ChaptersStore{db},
 	}
 }
 

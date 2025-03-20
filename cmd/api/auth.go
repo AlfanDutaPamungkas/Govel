@@ -238,7 +238,7 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 	err := app.store.Users.ResetPassword(r.Context(), token, payload.Password)
 	if err != nil {
 		switch err {
-		case store.ErrNotFound:
+		case store.ErrNotFound:	
 			app.notFoundResponse(w, r, err)
 		default:
 			app.internalServerError(w, r, err)
