@@ -1,0 +1,2 @@
+ALTER TABLE chapters
+ADD COLUMN is_locked boolean NOT NULL DEFAULT FALSE;

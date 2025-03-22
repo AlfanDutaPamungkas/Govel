@@ -37,7 +37,7 @@ type Storage struct {
 	}
 
 	Chapters interface {
-
+		Create(context.Context, *Chapter) error
 	}
 }
 

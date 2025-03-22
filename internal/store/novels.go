@@ -16,6 +16,7 @@ type Novel struct {
 	Synopsis  string    `json:"synopsis"`
 	Genre     []string  `json:"genre"`
 	ImageURL  string    `json:"image_url"`
+	Chapters  []Chapter `json:"chapters"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

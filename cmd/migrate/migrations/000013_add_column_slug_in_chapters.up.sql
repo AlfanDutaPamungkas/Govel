@@ -1,0 +1,2 @@
+ALTER TABLE chapters
+ADD COLUMN slug varchar(100) NOT NULL UNIQUE;

@@ -1,0 +1,2 @@
+ALTER TABLE chapters 
+ALTER COLUMN chapter_number TYPE NUMERIC;

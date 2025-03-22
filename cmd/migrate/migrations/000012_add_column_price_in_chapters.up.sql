@@ -1,0 +1,2 @@
+ALTER TABLE chapters
+ADD COLUMN price int NOT NULL DEFAULT 0;
