@@ -124,7 +124,10 @@ func (app *application) mount() http.Handler {
 					r.With(app.AdminOnly()).Post("/", app.createChapterHandler)
 
 					r.Route("/{slug}", func(r chi.Router) {
-						
+						r.Use(app.chaptersContextMiddleware)
+
+						r.With(app.AdminOnly()).Patch("/", app.updateChapterHandler)
+						r.With(app.AdminOnly()).Delete("/", app.deleteChapterHandler)
 					})
 				})
 			})

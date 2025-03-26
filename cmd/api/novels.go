@@ -81,10 +81,10 @@ func (app *application) createNovelHandler(w http.ResponseWriter, r *http.Reques
 }
 
 type UpdateNovelPayload struct {
-	Title    string `json:"title" validate:""`
+	Title    string `json:"title"`
 	Author   string `json:"author" validate:"omitempty,max=255"`
-	Synopsis string `json:"synopsis" validate:""`
-	Genre    string `json:"genre" validate:""`
+	Synopsis string `json:"synopsis"`
+	Genre    string `json:"genre"`
 }
 
 func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Request) {

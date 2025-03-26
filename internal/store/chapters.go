@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -54,6 +55,87 @@ func (c *ChaptersStore) Create(ctx context.Context, chapter *Chapter) error {
 		switch {
 		case err.Error() == `ERROR: duplicate key value violates unique constraint "chapters_slug_key" (SQLSTATE 23505)`:
 			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ChaptersStore) GetBySlug(ctx context.Context, slug string) (*Chapter, error) {
+	query := `
+		SELECT id, novel_id, slug, title, content, chapter_number, is_locked, price, created_at, updated_at
+		FROM chapters
+		WHERE slug = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var chapter Chapter
+
+	err := c.db.QueryRow(
+		ctx,
+		query,
+		slug,
+	).Scan(
+		&chapter.ID,
+		&chapter.NovelID,
+		&chapter.Slug,
+		&chapter.Title,
+		&chapter.Content,
+		&chapter.ChapterNumber,
+		&chapter.IsLocked,
+		&chapter.Price,
+		&chapter.CreatedAt,
+		&chapter.UpdatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &chapter, nil
+}
+
+func (c *ChaptersStore) Update(ctx context.Context, chapter *Chapter) error {
+	query := `
+		update chapters
+		SET title = $1, content = $2, chapter_number = $3, is_locked = $4, price = $5, updated_at = $6
+		WHERE slug = $7
+		RETURNING id, slug, created_at, updated_at
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := c.db.QueryRow(
+		ctx,
+		query,
+		chapter.Title,
+		chapter.Content,
+		chapter.ChapterNumber,
+		chapter.IsLocked,
+		chapter.Price,
+		chapter.UpdatedAt,
+		chapter.Slug,
+	).Scan(
+		&chapter.ID,
+		&chapter.Slug,
+		&chapter.CreatedAt,
+		&chapter.UpdatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return ErrNotFound
 		default:
 			return err
 		}

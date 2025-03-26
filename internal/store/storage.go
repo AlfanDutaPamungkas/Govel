@@ -23,7 +23,7 @@ type Storage struct {
 		GetByEmail(context.Context, string) (*User, error)
 		GetByID(context.Context, int64) (*User, error)
 		Delete(context.Context, int64) error
-		Update(context.Context, *User) (error)
+		Update(context.Context, *User) error
 		CreateForgotPassReq(context.Context, string, int64, time.Duration) error
 		DeleteForgotPassReq(context.Context, string) error
 		ResetPassword(context.Context, string, string) error
@@ -32,19 +32,21 @@ type Storage struct {
 	Novels interface {
 		Create(context.Context, *Novel) error
 		GetByID(context.Context, int64) (*Novel, error)
-		Update(context.Context, *Novel) (error)
+		Update(context.Context, *Novel) error
 		Delete(context.Context, int64) error
 	}
 
 	Chapters interface {
 		Create(context.Context, *Chapter) error
+		GetBySlug(context.Context, string) (*Chapter, error)
+		Update(context.Context, *Chapter) error
 	}
 }
 
 func NewStorage(db *pgxpool.Pool) Storage {
 	return Storage{
-		Users: &UsersStore{db},
-		Novels: &NovelsStore{db},
+		Users:    &UsersStore{db},
+		Novels:   &NovelsStore{db},
 		Chapters: &ChaptersStore{db},
 	}
 }
