@@ -134,7 +134,19 @@ func (app *application) updateChapterHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) deleteChapterHandler(w http.ResponseWriter, r *http.Request) {
+	chapter := getChapterFromCtx(r)
 
+	if err := app.store.Chapters.Delete(r.Context(), chapter.Slug); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *application) chaptersContextMiddleware(next http.Handler) http.Handler {

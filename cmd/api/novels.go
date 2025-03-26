@@ -196,10 +196,7 @@ func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *application) novelsContextMiddleware(next http.Handler) http.Handler {

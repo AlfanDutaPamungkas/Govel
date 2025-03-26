@@ -143,3 +143,22 @@ func (c *ChaptersStore) Update(ctx context.Context, chapter *Chapter) error {
 
 	return nil
 }
+
+func (c *ChaptersStore) Delete(ctx context.Context, slug string) error {
+	query := `DELETE FROM chapters WHERE slug = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := c.db.Exec(ctx, query, slug)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
+		}
+	}
+
+	return nil
+}

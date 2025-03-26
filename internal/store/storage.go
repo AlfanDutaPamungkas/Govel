@@ -40,6 +40,7 @@ type Storage struct {
 		Create(context.Context, *Chapter) error
 		GetBySlug(context.Context, string) (*Chapter, error)
 		Update(context.Context, *Chapter) error
+		Delete(context.Context, string) error
 	}
 }
 
