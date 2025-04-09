@@ -149,6 +149,29 @@ func (app *application) deleteChapterHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (app *application) getDetailChapterHandler(w http.ResponseWriter, r *http.Request){
+	user := getUserFromCtx(r)
+	chapter := getChapterFromCtx(r)
+
+	history := store.History{
+		UserID: user.ID,
+		ChapterSlug: chapter.Slug,
+		IsRead: true,
+	}
+
+	if err := app.store.Histories.Create(r.Context(), &history); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	chapter.IsRead = history.IsRead
+
+	if err := app.jsonResponse(w, http.StatusOK, chapter); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (app *application) chaptersContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

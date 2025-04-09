@@ -43,6 +43,10 @@ type Storage struct {
 		Update(context.Context, *Chapter) error
 		Delete(context.Context, string) error
 	}
+
+	Histories interface {
+		Create(context.Context, *History) error
+	}
 }
 
 func NewStorage(db *pgxpool.Pool) Storage {
@@ -50,6 +54,7 @@ func NewStorage(db *pgxpool.Pool) Storage {
 		Users:    &UsersStore{db},
 		Novels:   &NovelsStore{db},
 		Chapters: &ChaptersStore{db},
+		Histories: &HistoriesStore{db},
 	}
 }
 
