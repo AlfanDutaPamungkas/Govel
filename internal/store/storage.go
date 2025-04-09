@@ -39,6 +39,7 @@ type Storage struct {
 	Chapters interface {
 		Create(context.Context, *Chapter) error
 		GetBySlug(context.Context, string) (*Chapter, error)
+		GetChaptersFromNovelID(context.Context, int64, int64) ([]*Chapter, error)
 		Update(context.Context, *Chapter) error
 		Delete(context.Context, string) error
 	}

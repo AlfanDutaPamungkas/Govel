@@ -22,6 +22,7 @@ type Chapter struct {
 	ChapterNumber float64   `json:"chapter_number"`
 	IsLocked      bool      `json:"is_locked"`
 	Price         int       `json:"price"`
+	IsRead        bool      `json:"is_read"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }
@@ -161,4 +162,62 @@ func (c *ChaptersStore) Delete(ctx context.Context, slug string) error {
 	}
 
 	return nil
+}
+
+func (c *ChaptersStore) GetChaptersFromNovelID(ctx context.Context, novelID int64, userID int64) ([]*Chapter, error) {
+	query := `
+		SELECT 
+			c.id, c.novel_id, c.slug, c.title, c.chapter_number,
+			c.is_locked, c.price, c.created_at, c.updated_at,
+			COALESCE(h.is_read, false) AS is_read
+		FROM chapters c
+		LEFT JOIN history h ON h.chapter_id = c.id AND h.user_id = $2
+		WHERE c.novel_id = $1
+		ORDER BY c.chapter_number ASC;
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+	
+	rows, err := c.db.Query(
+		ctx,
+		query,
+		novelID,
+		userID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var chapters []*Chapter
+	for rows.Next(){
+		var chapter Chapter
+		err := rows.Scan(
+			&chapter.ID,
+			&chapter.NovelID,
+			&chapter.Slug,
+			&chapter.Title,
+			&chapter.ChapterNumber,
+			&chapter.IsLocked,
+			&chapter.Price,
+			&chapter.CreatedAt,
+			&chapter.UpdatedAt,
+			&chapter.IsRead,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		chapters = append(chapters, &chapter)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return chapters, nil
 }

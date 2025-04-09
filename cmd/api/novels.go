@@ -199,6 +199,24 @@ func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+	novel := getNovelFromCtx(r)
+
+	chapters, err := app.store.Chapters.GetChaptersFromNovelID(r.Context(), novel.ID, user.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	novel.Chapters = chapters
+
+	if err := app.jsonResponse(w, http.StatusOK, novel); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (app *application) novelsContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
