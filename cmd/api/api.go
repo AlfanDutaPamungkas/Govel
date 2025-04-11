@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/xendit/xendit-go/v6"
 	"go.uber.org/zap"
 )
 
@@ -22,6 +23,7 @@ type application struct {
 	mailer        *mailer.SMTPMailer
 	authenticator auth.Authenticator
 	cld           *cloudinary.Cloudinary
+	xendit        *xendit.APIClient
 }
 
 type config struct {
@@ -33,6 +35,7 @@ type config struct {
 	auth             authConfig
 	ForgotPassExp    time.Duration
 	cloudinaryConfig *cld.CloudinaryConfig
+	xenditSecret     string
 }
 
 type authConfig struct {
@@ -135,7 +138,14 @@ func (app *application) mount() http.Handler {
 					})
 				})
 			})
+		})
 
+		r.Route("/invoices", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+
+			r.Route("/{plan}", func(r chi.Router) {
+				r.Post("/", app.createInvoiceHandler)
+			})
 		})
 	})
 

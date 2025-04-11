@@ -9,6 +9,7 @@ import (
 	"github.com/AlfanDutaPamungkas/Govel/internal/env"
 	"github.com/AlfanDutaPamungkas/Govel/internal/mailer"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
+	"github.com/xendit/xendit-go/v6"
 	"go.uber.org/zap"
 )
 
@@ -48,6 +49,7 @@ func main() {
 			APIKey:    env.GetEnv("API_KEY", ""),
 			APISecret: env.GetEnv("API_SECRET", ""),
 		},
+		xenditSecret: env.GetEnv("XENDIT_SECRET_KEY", ""),
 	}
 
 	logger := zap.Must(zap.NewProduction()).Sugar()
@@ -91,6 +93,8 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	xnd := xendit.NewClient(cfg.xenditSecret)
+
 	app := &application{
 		config:        cfg,
 		logger:        logger,
@@ -98,6 +102,7 @@ func main() {
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
 		cld:           cld,
+		xendit:        xnd,
 	}
 
 	mux := app.mount()

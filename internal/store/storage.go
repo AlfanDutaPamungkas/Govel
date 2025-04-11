@@ -47,6 +47,10 @@ type Storage struct {
 	Histories interface {
 		Create(context.Context, *History) error
 	}
+
+	Invoices interface{
+		Create(context.Context, *Invoice) error
+	}
 }
 
 func NewStorage(db *pgxpool.Pool) Storage {
@@ -55,6 +59,7 @@ func NewStorage(db *pgxpool.Pool) Storage {
 		Novels:   &NovelsStore{db},
 		Chapters: &ChaptersStore{db},
 		Histories: &HistoriesStore{db},
+		Invoices: &InvoicesStore{db},
 	}
 }
 
