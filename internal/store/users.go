@@ -25,6 +25,7 @@ type User struct {
 	IsActive     bool      `json:"is_active"`
 	Role         string    `json:"-"`
 	TokenVersion int64     `json:"token_version"`
+	Coin         int64     `json:"coin"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -52,7 +53,8 @@ func (p *password) Verify(pass string) bool {
 }
 
 type UsersStore struct {
-	db *pgxpool.Pool
+	db       *pgxpool.Pool
+	invoices *InvoicesStore
 }
 
 func (s *UsersStore) Create(ctx context.Context, tx pgx.Tx, user *User) error {
@@ -440,4 +442,44 @@ func (s *UsersStore) getForgotPassReq(ctx context.Context, tx pgx.Tx, token stri
 	}
 
 	return user, nil
+}
+
+func (s *UsersStore) Webhook(ctx context.Context, user *User, invoice *Invoice) error {
+	return withTx(s.db, ctx, func(tx pgx.Tx) error {
+		if err := s.invoices.update(ctx, tx, invoice); err != nil {
+			return err
+		}
+
+		if invoice.Status == "PAID" {
+			if err := s.addCoin(ctx, tx, user); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func (s *UsersStore) addCoin(ctx context.Context, tx pgx.Tx, user *User) error {
+	query := `
+		update users
+		SET coin = coin + $1
+		WHERE id = $2
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.Exec(
+		ctx,
+		query,
+		user.Coin,
+		user.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

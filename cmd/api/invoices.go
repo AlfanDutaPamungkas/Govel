@@ -11,6 +11,10 @@ import (
 	"github.com/xendit/xendit-go/v6/invoice"
 )
 
+type invoiceKey string
+
+const invoiceCtx invoiceKey = "novel"
+
 func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 	plan := chi.URLParam(r, "plan")
@@ -48,6 +52,7 @@ func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Requ
 		Status:     string(resp.Status),
 		Amount:     amount,
 		Plan:       plan,
+		InvoiceURL: resp.InvoiceUrl,
 	}
 
 	if err := app.store.Invoices.Create(r.Context(), i); err != nil {
@@ -59,4 +64,30 @@ func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Requ
 		app.internalServerError(w, r, err)
 		return
 	}
+}
+
+func (app *application) invoicesContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := chi.URLParam(r, "invoiceID")
+
+		invoice, err := app.store.Invoices.GetByInvoiceID(ctx, id)
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r, err)
+			default:
+				app.internalServerError(w, r, err)
+			}
+			return
+		}
+
+		ctx = context.WithValue(ctx, invoiceCtx, invoice)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getInvoiiceFromCtx(r *http.Request) *store.Invoice {
+	invoice, _ := r.Context().Value(invoiceCtx).(*store.Invoice)
+	return invoice
 }

@@ -27,6 +27,7 @@ type Storage struct {
 		CreateForgotPassReq(context.Context, string, int64, time.Duration) error
 		DeleteForgotPassReq(context.Context, string) error
 		ResetPassword(context.Context, string, string) error
+		Webhook(context.Context, *User, *Invoice) error
 	}
 
 	Novels interface {
@@ -48,18 +49,21 @@ type Storage struct {
 		Create(context.Context, *History) error
 	}
 
-	Invoices interface{
+	Invoices interface {
 		Create(context.Context, *Invoice) error
+		GetByInvoiceID(context.Context, string) (*Invoice, error)
 	}
 }
 
 func NewStorage(db *pgxpool.Pool) Storage {
+	invStore := &InvoicesStore{db}
+
 	return Storage{
-		Users:    &UsersStore{db},
-		Novels:   &NovelsStore{db},
-		Chapters: &ChaptersStore{db},
+		Users:     &UsersStore{db, invStore},
+		Novels:    &NovelsStore{db},
+		Chapters:  &ChaptersStore{db},
 		Histories: &HistoriesStore{db},
-		Invoices: &InvoicesStore{db},
+		Invoices:  invStore,
 	}
 }
 

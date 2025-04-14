@@ -147,6 +147,12 @@ func (app *application) mount() http.Handler {
 				r.Post("/", app.createInvoiceHandler)
 			})
 		})
+
+		r.Route("/webhook", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			
+			r.Post("/", app.transactionHandler)
+		})
 	})
 
 	return r
