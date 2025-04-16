@@ -85,14 +85,17 @@ func (app *application) CheckPremium() func(http.Handler) http.Handler {
 			chapter := getChapterFromCtx(r)
 			user := getUserFromCtx(r)
 
+			if !chapter.IsLocked {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			if user.Role == "admin" {
-				app.logger.Info("admin gege")
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			err := app.store.UserUnlocks.CheckkUser(r.Context(), user.ID, chapter.Slug)
-			app.logger.Info(err)
 			if err != nil {
 				switch {
 				case errors.Is(err, store.ErrNotFound):
