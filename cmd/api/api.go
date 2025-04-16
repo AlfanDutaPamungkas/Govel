@@ -131,7 +131,7 @@ func (app *application) mount() http.Handler {
 					r.Route("/{slug}", func(r chi.Router) {
 						r.Use(app.chaptersContextMiddleware)
 
-						r.Get("/", app.getDetailChapterHandler)
+						r.With(app.CheckPremium()).Get("/", app.getDetailChapterHandler)
 
 						r.With(app.AdminOnly()).Patch("/", app.updateChapterHandler)
 						r.With(app.AdminOnly()).Delete("/", app.deleteChapterHandler)

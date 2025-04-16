@@ -53,6 +53,10 @@ type Storage struct {
 		Create(context.Context, *Invoice) error
 		GetByInvoiceID(context.Context, string) (*Invoice, error)
 	}
+
+	UserUnlocks interface {
+		CheckkUser(context.Context, int64, string) error
+	}
 }
 
 func NewStorage(db *pgxpool.Pool) Storage {
@@ -64,6 +68,7 @@ func NewStorage(db *pgxpool.Pool) Storage {
 		Chapters:  &ChaptersStore{db},
 		Histories: &HistoriesStore{db},
 		Invoices:  invStore,
+		UserUnlocks: &UserUnlockStore{db},
 	}
 }
 

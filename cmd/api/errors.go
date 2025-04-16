@@ -31,3 +31,9 @@ func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request
 
 	writeJSONError(w, http.StatusForbidden, "prohibited")
 }
+
+func (app *application) paymentRequiredResponse(w http.ResponseWriter, r *http.Request) {
+	app.logger.Warnf("payment required error", "method", r.Method, "path", r.URL.Path, "error", "prohibited")
+
+	writeJSONError(w, http.StatusPaymentRequired, "please purchase this chapter")
+}

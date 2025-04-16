@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -70,6 +71,35 @@ func (app *application) AdminOnly() func(http.Handler) http.Handler {
 
 			if user.Role != "admin" {
 				app.forbiddenResponse(w, r)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func (app *application) CheckPremium() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			chapter := getChapterFromCtx(r)
+			user := getUserFromCtx(r)
+
+			if user.Role == "admin" {
+				app.logger.Info("admin gege")
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			err := app.store.UserUnlocks.CheckkUser(r.Context(), user.ID, chapter.Slug)
+			app.logger.Info(err)
+			if err != nil {
+				switch {
+				case errors.Is(err, store.ErrNotFound):
+					app.paymentRequiredResponse(w, r)
+				default:
+					app.internalServerError(w, r, err)
+				}
 				return
 			}
 
