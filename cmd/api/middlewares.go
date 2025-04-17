@@ -99,7 +99,7 @@ func (app *application) CheckPremium() func(http.Handler) http.Handler {
 			if err != nil {
 				switch {
 				case errors.Is(err, store.ErrNotFound):
-					app.paymentRequiredResponse(w, r)
+					app.paymentRequiredResponse(w, r, errors.New("please purchase this chapter"))
 				default:
 					app.internalServerError(w, r, err)
 				}

@@ -135,6 +135,8 @@ func (app *application) mount() http.Handler {
 
 						r.With(app.AdminOnly()).Patch("/", app.updateChapterHandler)
 						r.With(app.AdminOnly()).Delete("/", app.deleteChapterHandler)
+
+						r.Post("/unlock", app.unlockChapterHandler)
 					})
 				})
 			})

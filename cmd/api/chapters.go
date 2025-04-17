@@ -172,6 +172,38 @@ func (app *application) getDetailChapterHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+func (app *application) unlockChapterHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+	chapter := getChapterFromCtx(r)
+
+	app.logger.Info(user.Coin)
+
+	if user.Coin < int64(chapter.Price) {
+		app.paymentRequiredResponse(w, r, errors.New("insufficient coin"))
+		return
+	}
+
+	userUnlock := store.UserUnlock{
+		UserID: user.ID,
+		ChapterSlug: chapter.Slug,
+	}
+
+	if err := app.store.Users.PurchaseChapter(r.Context(), user.ID, int64(chapter.Price), &userUnlock); err != nil {
+		switch {
+		case errors.Is(err, store.ErrAlreadyUnlocked):
+			app.badRequestResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, userUnlock); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (app *application) chaptersContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

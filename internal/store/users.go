@@ -53,8 +53,9 @@ func (p *password) Verify(pass string) bool {
 }
 
 type UsersStore struct {
-	db       *pgxpool.Pool
-	invoices *InvoicesStore
+	db          *pgxpool.Pool
+	invoices    *InvoicesStore
+	userUnlocks *UserUnlockStore
 }
 
 func (s *UsersStore) Create(ctx context.Context, tx pgx.Tx, user *User) error {
@@ -128,7 +129,7 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 
 func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT id, username, email, password, is_active, role, token_version, created_at, updated_at
+		SELECT id, username, email, password, is_active, role, token_version, coin, created_at, updated_at
 		FROM users
 		WHERE id = $1 AND is_active = true
 	`
@@ -149,6 +150,7 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.IsActive,
 		&user.Role,
 		&user.TokenVersion,
+		&user.Coin,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -475,6 +477,44 @@ func (s *UsersStore) addCoin(ctx context.Context, tx pgx.Tx, user *User) error {
 		query,
 		user.Coin,
 		user.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UsersStore) PurchaseChapter(ctx context.Context, userID int64, amount int64, userUnlock *UserUnlock) error {
+	return withTx(s.db, ctx, func(tx pgx.Tx) error {
+		if err := s.deductCoin(ctx, tx, userID, amount); err != nil {
+			return err
+		}
+
+		if err := s.userUnlocks.unlockChapter(ctx, tx, userUnlock); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UsersStore) deductCoin(ctx context.Context, tx pgx.Tx, userID, amount int64) error {
+	query := `
+		update users
+		SET coin = coin - $1
+		WHERE id = $2
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.Exec(
+		ctx,
+		query,
+		amount,
+		userID,
 	)
 
 	if err != nil {
