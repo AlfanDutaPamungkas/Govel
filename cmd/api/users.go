@@ -14,6 +14,19 @@ type userKey string
 
 const userCtx userKey = "user"
 
+//	activateUserHandler godoc
+//
+//	@Summary		Activate user account
+//	@Description	Activate user account using a valid token
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string	true	"Activation token"
+//	@Success		204		{}			"User account activated"
+//	@Failure		400		{object}	swagger.EnvelopeError
+//	@Failure		404		{object}	swagger.EnvelopeError
+//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Router			/users/activate/{token} [put]
 func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	err := app.store.Users.Activate(r.Context(), token)
@@ -30,6 +43,19 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusNoContent)
 }
 
+//	getUserHandler godoc
+//
+//	@Summary		Get user by ID
+//	@Description	Retrieve the user profile by user ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int						true	"User ID"
+//	@Success		200		{object}	store.User				"User profile data"
+//	@Failure		400		{object}	swagger.EnvelopeError	"Invalid user ID"
+//	@Failure		404		{object}	swagger.EnvelopeError	"User not found"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/users/{userID} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 	if err != nil {
@@ -59,6 +85,18 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//	getProfileHandler godoc
+//
+//	@Summary		Get user profile
+//	@Description	Retrieve the profile of the currently authenticated user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	store.User	"User profile data"
+//	@Failure		400	{object}	swagger.EnvelopeError
+//	@Failure		401	{object}	swagger.EnvelopeError
+//	@Failure		500	{object}	swagger.EnvelopeError
+//	@Router			/users/ [get]
 func (app *application) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
@@ -73,6 +111,20 @@ type CreateUpdateUsernamePayload struct {
 	Email    string `json:"email" validate:"omitempty,email,max=255"`
 }
 
+//	updateUserHandler godoc
+//
+//	@Summary		Update user profile
+//	@Description	Update user profile, including username and/or email
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreateUpdateUsernamePayload	true	"Updated user profile data"
+//	@Success		200		{object}	store.User					"Updated user profile data"
+//	@Failure		400		{object}	swagger.EnvelopeError		"Bad request"
+//	@Failure		401		{object}	swagger.EnvelopeError		"Unauthorized"
+//	@Failure		404		{object}	swagger.EnvelopeError		"User not found"
+//	@Failure		500		{object}	swagger.EnvelopeError		"Internal server error"
+//	@Router			/users/ [patch]
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
@@ -123,6 +175,19 @@ type ChangePasswordPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
+//	changePasswordHandler godoc
+//
+//	@Summary		Change user password
+//	@Description	Change the password of the currently authenticated user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		ChangePasswordPayload	true	"New password"
+//	@Success		200		{object}	swagger.EnvelopeString	"Password change success message"
+//	@Failure		400		{object}	swagger.EnvelopeError	"Bad request"
+//	@Failure		401		{object}	swagger.EnvelopeError	"Unauthorized"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/users/change-password [patch]
 func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 

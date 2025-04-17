@@ -24,6 +24,22 @@ type CreateNovelPayload struct {
 	Genre    string `schema:"genre" validate:"required"`
 }
 
+//	createNovelHandler godoc
+//
+//	@Summary		Create a new novel
+//	@Description	Create a new novel with title, author, synopsis, genre, and optional image
+//	@Tags			novels
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			title		formData	string					true	"Novel Title"
+//	@Param			author		formData	string					true	"Author of the Novel"
+//	@Param			synopsis	formData	string					true	"Synopsis of the Novel"
+//	@Param			genre		formData	string					true	"Genre of the Novel"
+//	@Param			image		formData	file					false	"Cover image of the Novel"
+//	@Success		201			{object}	store.Novel				"Novel created successfully"
+//	@Failure		400			{object}	swagger.EnvelopeError	"Invalid input"
+//	@Failure		500			{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels [post]
 func (app *application) createNovelHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -87,6 +103,21 @@ type UpdateNovelPayload struct {
 	Genre    string `json:"genre"`
 }
 
+//	updateNovelHandler godoc
+//
+//	@Summary		Update novel
+//	@Description	Update an existing novel's title, author, synopsis, or genre. Admin only.
+//	@Tags			novels
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			novelID	path		int						true	"Novel ID"
+//	@Param			data	body		UpdateNovelPayload		true	"Fields to update"
+//	@Success		200		{object}	store.Novel				"Updated novel"
+//	@Failure		400		{object}	swagger.EnvelopeError	"Invalid request"
+//	@Failure		404		{object}	swagger.EnvelopeError	"Novel not found"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID} [patch]
 func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Request) {
 	novel := getNovelFromCtx(r)
 
@@ -141,6 +172,21 @@ func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+//	changeNovelImageHandler godoc
+//
+//	@Summary		Change novel image
+//	@Description	Update the cover image of a novel. Admin only.
+//	@Tags			novels
+//	@Accept			mpfd
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			novelID	path		int						true	"Novel ID"
+//	@Param			image	formData	file					true	"Image file (jpg, png, etc.)"
+//	@Success		200		{object}	store.Novel				"Updated novel with new image"
+//	@Failure		400		{object}	swagger.EnvelopeError	"Bad request (e.g. no image)"
+//	@Failure		404		{object}	swagger.EnvelopeError	"Novel not found"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID}/image [patch]
 func (app *application) changeNovelImageHandler(w http.ResponseWriter, r *http.Request) {
 	novel := getNovelFromCtx(r)
 	ctx := r.Context()
@@ -178,6 +224,19 @@ func (app *application) changeNovelImageHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+//	deleteNovelHandler godoc
+//
+//	@Summary		Delete novel
+//	@Description	Delete novel by ID
+//	@Tags			novels
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			novelID	path		int	true	"Novel ID"
+//	@Success		204		{}			"Delete novel succesfully"
+//	@Failure		404		{object}	swagger.EnvelopeError	"Novel not found"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID} [delete]
 func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "novelID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
@@ -199,6 +258,18 @@ func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+//	getNovelHandler godoc
+//
+//	@Summary		Get novel detail
+//	@Description	Get detailed information about a specific novel by its ID, including chapters
+//	@Tags			novels
+//	@Produce		json
+//	@Param			novelID	path		int						true	"Novel ID"
+//	@Success		200		{object}	store.Novel				"Detail novel with chapters"
+//	@Failure		400		{object}	swagger.EnvelopeError	"Invalid novel ID"
+//	@Failure		404		{object}	swagger.EnvelopeError	"Novel not found"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID} [get]
 func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 	novel := getNovelFromCtx(r)

@@ -1,0 +1,691 @@
+basePath: /v1
+definitions:
+  main.ChangePasswordPayload:
+    properties:
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - password
+    type: object
+  main.CreateUpdateUsernamePayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      username:
+        maxLength: 255
+        type: string
+    type: object
+  main.CreateUserTokenPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  main.ForgotPasswordPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+    required:
+    - email
+    type: object
+  main.RegisterUserPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  main.ResetPasswordPayload:
+    properties:
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - password
+    type: object
+  main.UpdateNovelPayload:
+    properties:
+      author:
+        maxLength: 255
+        type: string
+      genre:
+        type: string
+      synopsis:
+        type: string
+      title:
+        type: string
+    type: object
+  main.UserWithToken:
+    properties:
+      coin:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      token:
+        type: string
+      token_version:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  store.Chapter:
+    properties:
+      chapter_number:
+        type: number
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_locked:
+        type: boolean
+      is_read:
+        type: boolean
+      novel_id:
+        type: integer
+      price:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  store.Novel:
+    properties:
+      author:
+        type: string
+      chapters:
+        items:
+          $ref: '#/definitions/store.Chapter'
+        type: array
+      created_at:
+        type: string
+      genre:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      image_url:
+        type: string
+      synopsis:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  store.User:
+    properties:
+      coin:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      token_version:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  swagger.EnvelopeError:
+    properties:
+      error:
+        type: string
+    type: object
+  swagger.EnvelopeString:
+    properties:
+      data:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: RESTful API for an online novel platform — read, publish, and manage
+    digital stories.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Govel API
+paths:
+  /authentication/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send reset password link to user's email
+      parameters:
+      - description: Email payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ForgotPasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Plain reset token
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeString'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Request forgot password
+      tags:
+      - authentication
+  /authentication/reset-password/{token}:
+    patch:
+      consumes:
+      - application/json
+      description: Reset password using token from forgot-password email
+      parameters:
+      - description: Reset password token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: New password payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ResetPasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed message
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeString'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Reset user password
+      tags:
+      - authentication
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Creates a token for a user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Token
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeString'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Creates a token
+      tags:
+      - authentication
+  /authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: Registers a user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: user registered
+          schema:
+            $ref: '#/definitions/main.UserWithToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Registers a user
+      tags:
+      - authentication
+  /novels:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new novel with title, author, synopsis, genre, and optional
+        image
+      parameters:
+      - description: Novel Title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Author of the Novel
+        in: formData
+        name: author
+        required: true
+        type: string
+      - description: Synopsis of the Novel
+        in: formData
+        name: synopsis
+        required: true
+        type: string
+      - description: Genre of the Novel
+        in: formData
+        name: genre
+        required: true
+        type: string
+      - description: Cover image of the Novel
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Novel created successfully
+          schema:
+            $ref: '#/definitions/store.Novel'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Create a new novel
+      tags:
+      - novels
+  /novels/{novelID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete novel by ID
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Delete novel succesfully
+          schema:
+            type: ""
+        "404":
+          description: Novel not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Delete novel
+      tags:
+      - novels
+    get:
+      description: Get detailed information about a specific novel by its ID, including
+        chapters
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail novel with chapters
+          schema:
+            $ref: '#/definitions/store.Novel'
+        "400":
+          description: Invalid novel ID
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Get novel detail
+      tags:
+      - novels
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing novel's title, author, synopsis, or genre. Admin
+        only.
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateNovelPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated novel
+          schema:
+            $ref: '#/definitions/store.Novel'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Update novel
+      tags:
+      - novels
+  /novels/{novelID}/image:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update the cover image of a novel. Admin only.
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: Image file (jpg, png, etc.)
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated novel with new image
+          schema:
+            $ref: '#/definitions/store.Novel'
+        "400":
+          description: Bad request (e.g. no image)
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Change novel image
+      tags:
+      - novels
+  /users/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the profile of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile data
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Get user profile
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Update user profile, including username and/or email
+      parameters:
+      - description: Updated user profile data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUpdateUsernamePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user profile data
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Update user profile
+      tags:
+      - users
+  /users/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the user profile by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile data
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Get user by ID
+      tags:
+      - users
+  /users/activate/{token}:
+    put:
+      consumes:
+      - application/json
+      description: Activate user account using a valid token
+      parameters:
+      - description: Activation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User account activated
+          schema:
+            type: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Activate user account
+      tags:
+      - users
+  /users/change-password:
+    patch:
+      consumes:
+      - application/json
+      description: Change the password of the currently authenticated user
+      parameters:
+      - description: New password
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ChangePasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password change success message
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeString'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Change user password
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

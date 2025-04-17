@@ -1,0 +1,1039 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "RESTful API for an online novel platform — read, publish, and manage digital stories.",
+        "title": "Govel API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "basePath": "/v1",
+    "paths": {
+        "/authentication/forgot-password": {
+            "post": {
+                "description": "Send reset password link to user's email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Request forgot password",
+                "parameters": [
+                    {
+                        "description": "Email payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.ForgotPasswordPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Plain reset token",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeString"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/authentication/reset-password/{token}": {
+            "patch": {
+                "description": "Reset password using token from forgot-password email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Reset user password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reset password token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New password payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.ResetPasswordPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password changed message",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeString"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/authentication/token": {
+            "post": {
+                "description": "Creates a token for a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Creates a token",
+                "parameters": [
+                    {
+                        "description": "User credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Token",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeString"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/authentication/user": {
+            "post": {
+                "description": "Registers a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Registers a user",
+                "parameters": [
+                    {
+                        "description": "User credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.RegisterUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "user registered",
+                        "schema": {
+                            "$ref": "#/definitions/main.UserWithToken"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels": {
+            "post": {
+                "description": "Create a new novel with title, author, synopsis, genre, and optional image",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Create a new novel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Novel Title",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Author of the Novel",
+                        "name": "author",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Synopsis of the Novel",
+                        "name": "synopsis",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Genre of the Novel",
+                        "name": "genre",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Cover image of the Novel",
+                        "name": "image",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Novel created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/store.Novel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels/{novelID}": {
+            "get": {
+                "description": "Get detailed information about a specific novel by its ID, including chapters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Get novel detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail novel with chapters",
+                        "schema": {
+                            "$ref": "#/definitions/store.Novel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid novel ID",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete novel by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Delete novel",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Delete novel succesfully",
+                        "schema": {
+                            "type": ""
+                        }
+                    },
+                    "404": {
+                        "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing novel's title, author, synopsis, or genre. Admin only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Update novel",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateNovelPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated novel",
+                        "schema": {
+                            "$ref": "#/definitions/store.Novel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels/{novelID}/image": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the cover image of a novel. Admin only.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Change novel image",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file (jpg, png, etc.)",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated novel with new image",
+                        "schema": {
+                            "$ref": "#/definitions/store.Novel"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request (e.g. no image)",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/": {
+            "get": {
+                "description": "Retrieve the profile of the currently authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user profile",
+                "responses": {
+                    "200": {
+                        "description": "User profile data",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update user profile, including username and/or email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "description": "Updated user profile data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateUpdateUsernamePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated user profile data",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/activate/{token}": {
+            "put": {
+                "description": "Activate user account using a valid token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Activate user account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activation token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "User account activated",
+                        "schema": {
+                            "type": ""
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/change-password": {
+            "patch": {
+                "description": "Change the password of the currently authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change user password",
+                "parameters": [
+                    {
+                        "description": "New password",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.ChangePasswordPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password change success message",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeString"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userID}": {
+            "get": {
+                "description": "Retrieve the user profile by user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User profile data",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.ChangePasswordPayload": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                }
+            }
+        },
+        "main.CreateUpdateUsernamePayload": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "main.CreateUserTokenPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                }
+            }
+        },
+        "main.ForgotPasswordPayload": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "main.RegisterUserPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "main.ResetPasswordPayload": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                }
+            }
+        },
+        "main.UpdateNovelPayload": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "synopsis": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.UserWithToken": {
+            "type": "object",
+            "properties": {
+                "coin": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "token_version": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.Chapter": {
+            "type": "object",
+            "properties": {
+                "chapter_number": {
+                    "type": "number"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_locked": {
+                    "type": "boolean"
+                },
+                "is_read": {
+                    "type": "boolean"
+                },
+                "novel_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.Novel": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "chapters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/store.Chapter"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "genre": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "synopsis": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.User": {
+            "type": "object",
+            "properties": {
+                "coin": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "token_version": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "swagger.EnvelopeError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "swagger.EnvelopeString": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

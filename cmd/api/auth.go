@@ -25,6 +25,18 @@ type UserWithToken struct {
 	Token string `json:"token"`
 }
 
+//	registerUserHandler godoc
+//
+//	@Summary		Registers a user
+//	@Description	Registers a user
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@param			payload	body		RegisterUserPayload	true	"User credentials"
+//	@Success		201		{object}	UserWithToken		"user registered"
+//	@Failure		400		{object}	swagger.EnvelopeError
+//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Router			/authentication/user [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -103,6 +115,19 @@ type CreateUserTokenPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
+//	createTokenHandler godoc
+//
+//	@Summary		Creates a token
+//	@Description	Creates a token for a user
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@param			payload	body		CreateUserTokenPayload	true	"User credentials"
+//	@Success		201		{object}	swagger.EnvelopeString	"Token"
+//	@Failure		400		{object}	swagger.EnvelopeError
+//	@Failure		401		{object}	swagger.EnvelopeError
+//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Router			/authentication/token [post]
 func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateUserTokenPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -157,6 +182,19 @@ type ForgotPasswordPayload struct {
 	Email    string `json:"email" validate:"required,email,max=255"`
 }
 
+//	forgotPasswordHandler godoc
+//
+//	@Summary		Request forgot password
+//	@Description	Send reset password link to user's email
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		ForgotPasswordPayload	true	"Email payload"
+//	@Success		201		{object}	swagger.EnvelopeString	"Plain reset token"
+//	@Failure		400		{object}	swagger.EnvelopeError
+//	@Failure		404		{object}	swagger.EnvelopeError
+//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Router			/authentication/forgot-password [post]
 func (app *application) forgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var payload ForgotPasswordPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -222,6 +260,20 @@ type ResetPasswordPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
+//	resetPasswordHandler godoc
+//
+//	@Summary		Reset user password
+//	@Description	Reset password using token from forgot-password email
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string					true	"Reset password token"
+//	@Param			payload	body		ResetPasswordPayload	true	"New password payload"
+//	@Success		200		{object}	swagger.EnvelopeString	"Password changed message"
+//	@Failure		400		{object}	swagger.EnvelopeError
+//	@Failure		404		{object}	swagger.EnvelopeError
+//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Router			/authentication/reset-password/{token} [patch]
 func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Request){
 	token := chi.URLParam(r, "token")
 	var payload ResetPasswordPayload

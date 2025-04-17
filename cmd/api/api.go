@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/AlfanDutaPamungkas/Govel/docs"
 	"github.com/AlfanDutaPamungkas/Govel/internal/auth"
 	cld "github.com/AlfanDutaPamungkas/Govel/internal/cloudinary"
 	"github.com/AlfanDutaPamungkas/Govel/internal/mailer"
@@ -12,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/xendit/xendit-go/v6"
 	"go.uber.org/zap"
 )
@@ -28,6 +31,7 @@ type application struct {
 
 type config struct {
 	addr             string
+	apiURL           string
 	env              string
 	db               dbConfig
 	mail             mailConfig
@@ -85,6 +89,9 @@ func (app *application) mount() http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
+
+		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
+		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
 
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
@@ -155,7 +162,7 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/webhook", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
-			
+
 			r.Post("/", app.transactionHandler)
 		})
 	})
@@ -164,6 +171,10 @@ func (app *application) mount() http.Handler {
 }
 
 func (app *application) run(mux http.Handler) error {
+	// Docs
+	docs.SwaggerInfo.Version = version
+	docs.SwaggerInfo.Host = app.config.apiURL
+	docs.SwaggerInfo.BasePath = "/v1"
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,
