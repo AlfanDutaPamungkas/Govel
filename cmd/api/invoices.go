@@ -11,21 +11,17 @@ import (
 	"github.com/xendit/xendit-go/v6/invoice"
 )
 
-type invoiceKey string
-
-const invoiceCtx invoiceKey = "novel"
-
 func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 	plan := chi.URLParam(r, "plan")
 
 	var amount float64
-	
+
 	if plan == "lite" {
 		amount = 15000
-	} else if plan == "scroll"{
+	} else if plan == "scroll" {
 		amount = 65000
-	} else if plan == "volume"{
+	} else if plan == "volume" {
 		amount = 100000
 	} else {
 		app.badRequestResponse(w, r, errors.New("plan not found"))
@@ -66,28 +62,36 @@ func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (app *application) invoicesContextMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		id := chi.URLParam(r, "invoiceID")
+func (app *application) getInvoiceHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
 
-		invoice, err := app.store.Invoices.GetByInvoiceID(ctx, id)
-		if err != nil {
-			switch {
-			case errors.Is(err, store.ErrNotFound):
-				app.notFoundResponse(w, r, err)
-			default:
-				app.internalServerError(w, r, err)
-			}
-			return
+	invoice, err := app.store.Invoices.GetByUserID(r.Context(), user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
 		}
+		return
+	}
 
-		ctx = context.WithValue(ctx, invoiceCtx, invoice)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	if err := app.jsonResponse(w, http.StatusCreated, invoice); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 }
 
-func getInvoiiceFromCtx(r *http.Request) *store.Invoice {
-	invoice, _ := r.Context().Value(invoiceCtx).(*store.Invoice)
-	return invoice
+func (app *application) getAllInvoicesHandler(w http.ResponseWriter, r *http.Request) {
+	invoices, err  := app.store.Invoices.GetAll(r.Context())
+
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return 
+	}
+
+	if err := app.jsonResponse(w, http.StatusCreated, invoices); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 }

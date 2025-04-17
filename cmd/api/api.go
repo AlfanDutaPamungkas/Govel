@@ -145,6 +145,9 @@ func (app *application) mount() http.Handler {
 		r.Route("/invoices", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
 
+			r.With(app.AdminOnly()).Get("/all", app.getAllInvoicesHandler)
+			r.Get("/", app.getInvoiceHandler)
+
 			r.Route("/{plan}", func(r chi.Router) {
 				r.Post("/", app.createInvoiceHandler)
 			})

@@ -116,3 +116,90 @@ func (i *InvoicesStore) GetByInvoiceID(ctx context.Context, invoiceID string) (*
 
 	return &invoice, err
 }
+
+func (i *InvoicesStore) GetByUserID(ctx context.Context, userID int64) (*Invoice, error) {
+	query := `
+		SELECT id, user_id, external_id, invoice_id, status, amount, plan, created_at
+		FROM invoices
+		WHERE user_id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var invoice Invoice
+
+	err := i.db.QueryRow(
+		ctx,
+		query,
+		userID,
+	).Scan(
+		&invoice.ID,
+		&invoice.UserID,
+		&invoice.ExternalID,
+		&invoice.InvoiceID,
+		&invoice.Status,
+		&invoice.Amount,
+		&invoice.Plan,
+		&invoice.CreatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &invoice, err
+}
+
+func (i *InvoicesStore) GetAll(ctx context.Context) ([]*Invoice, error) {
+	query := `
+		SELECT id, user_id, external_id, invoice_id, status, amount, plan, created_at
+		FROM invoices
+	`
+	
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := i.db.Query(
+		ctx,
+		query,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var invoices []*Invoice
+	for rows.Next(){
+		var invoice Invoice
+		err := rows.Scan(
+			&invoice.ID,
+			&invoice.UserID,
+			&invoice.ExternalID,
+			&invoice.InvoiceID,
+			&invoice.Status,
+			&invoice.Amount,
+			&invoice.Plan,
+			&invoice.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		invoices = append(invoices, &invoice)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return invoices, nil
+}

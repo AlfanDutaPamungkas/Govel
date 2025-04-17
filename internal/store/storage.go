@@ -53,6 +53,8 @@ type Storage struct {
 	Invoices interface {
 		Create(context.Context, *Invoice) error
 		GetByInvoiceID(context.Context, string) (*Invoice, error)
+		GetByUserID(context.Context, int64) (*Invoice, error)
+		GetAll(context.Context) ([]*Invoice, error)
 	}
 
 	UserUnlocks interface {
