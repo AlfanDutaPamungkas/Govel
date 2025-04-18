@@ -56,19 +56,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "invalid request",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "user npt found",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "internal server error",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -115,19 +115,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "invalid request",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "invalid token",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "internal server error",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -167,19 +167,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                        "description": "invalid request",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "internal server error",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -219,13 +213,145 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "invalid request",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/invoices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get user's invoices",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invoices"
+                ],
+                "summary": "Get invoices",
+                "responses": {
+                    "200": {
+                        "description": "Detail chapter",
+                        "schema": {
+                            "$ref": "#/definitions/store.Invoice"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Invoice not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/invoices/all": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all invoices. Admin only",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invoices"
+                ],
+                "summary": "Get all invoices",
+                "responses": {
+                    "200": {
+                        "description": "Detail chapter",
+                        "schema": {
+                            "$ref": "#/definitions/store.Invoice"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/invoices/{plan}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get invoices according from plan",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invoices"
+                ],
+                "summary": "Create invoice",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plan",
+                        "name": "plan",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail chapter",
+                        "schema": {
+                            "$ref": "#/definitions/store.Invoice"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -235,7 +361,12 @@ const docTemplate = `{
         },
         "/novels": {
             "post": {
-                "description": "Create a new novel with title, author, synopsis, genre, and optional image",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new novel with title, author, synopsis, genre, and optional image. Admon only",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -295,6 +426,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -306,6 +449,11 @@ const docTemplate = `{
         },
         "/novels/{novelID}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get detailed information about a specific novel by its ID, including chapters",
                 "produces": [
                     "application/json"
@@ -336,6 +484,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
                     "404": {
                         "description": "Novel not found",
                         "schema": {
@@ -354,9 +508,12 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "BearerAuth": []
                     }
                 ],
-                "description": "Delete novel by ID",
+                "description": "Delete novel by ID. Admin only",
                 "consumes": [
                     "application/json"
                 ],
@@ -383,6 +540,18 @@ const docTemplate = `{
                             "type": ""
                         }
                     },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
                     "404": {
                         "description": "Novel not found",
                         "schema": {
@@ -399,6 +568,9 @@ const docTemplate = `{
             },
             "patch": {
                 "security": [
+                    {
+                        "BearerAuth": []
+                    },
                     {
                         "BearerAuth": []
                     }
@@ -445,8 +617,394 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
                     "404": {
                         "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels/{novelID}/chapters": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new chapter with slug, title, author, content, chapter number, price and status is locked. Admin only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Create a new chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "chapter payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateChapterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Chapter created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/store.Chapter"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels/{novelID}/chapters/{slug}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information about a specific chapter by its slug",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Get chapter detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chapter Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail chapter",
+                        "schema": {
+                            "$ref": "#/definitions/store.Chapter"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid novel ID or slug",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "402": {
+                        "description": "Payment required",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel or chapter not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete chapter by slug",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Delete chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chapter Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Delete chapter succesfully",
+                        "schema": {
+                            "type": ""
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel or chapter not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing chapter's title, content, chapter number, status is_locked or price. Admin only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Update chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chapter Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateChapterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated chapter",
+                        "schema": {
+                            "$ref": "#/definitions/store.Chapter"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels/{novelID}/chapters/{slug}/unlock": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "User can unlock chapter by coin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Unlock chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Novel ID",
+                        "name": "novelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chapter Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated chapter",
+                        "schema": {
+                            "$ref": "#/definitions/store.UserUnlock"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "402": {
+                        "description": "Insufficient coin",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Novel or chapter not found",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -463,6 +1021,9 @@ const docTemplate = `{
         "/novels/{novelID}/image": {
             "patch": {
                 "security": [
+                    {
+                        "BearerAuth": []
+                    },
                     {
                         "BearerAuth": []
                     }
@@ -507,6 +1068,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
                     "404": {
                         "description": "Novel not found",
                         "schema": {
@@ -524,6 +1097,11 @@ const docTemplate = `{
         },
         "/users/": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve the profile of the currently authenticated user",
                 "consumes": [
                     "application/json"
@@ -542,12 +1120,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/store.User"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -555,7 +1127,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -563,6 +1135,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update user profile, including username and/or email",
                 "consumes": [
                     "application/json"
@@ -648,20 +1225,14 @@ const docTemplate = `{
                             "type": ""
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    },
                     "404": {
-                        "description": "Not Found",
+                        "description": "invalid token",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "internal server error",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -671,6 +1242,11 @@ const docTemplate = `{
         },
         "/users/change-password": {
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Change the password of the currently authenticated user",
                 "consumes": [
                     "application/json"
@@ -723,6 +1299,11 @@ const docTemplate = `{
         },
         "/users/{userID}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve the user profile by user ID",
                 "consumes": [
                     "application/json"
@@ -770,6 +1351,69 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/webhook": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Webhook for handle after payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transaction"
+                ],
+                "summary": "Webhook",
+                "parameters": [
+                    {
+                        "description": "Webhook payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.WebhookPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment success",
+                        "schema": {
+                            "$ref": "#/definitions/main.response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Invoice not found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -783,6 +1427,36 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 72,
                     "minLength": 3
+                }
+            }
+        },
+        "main.CreateChapterPayload": {
+            "type": "object",
+            "required": [
+                "chapter_number",
+                "content",
+                "slug",
+                "title"
+            ],
+            "properties": {
+                "chapter_number": {
+                    "type": "number"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "is_locked": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -865,6 +1539,26 @@ const docTemplate = `{
                 }
             }
         },
+        "main.UpdateChapterPayload": {
+            "type": "object",
+            "properties": {
+                "chapter_number": {
+                    "type": "number"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "is_locked": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "main.UpdateNovelPayload": {
             "type": "object",
             "properties": {
@@ -915,6 +1609,28 @@ const docTemplate = `{
                 }
             }
         },
+        "main.WebhookPayload": {
+            "type": "object",
+            "required": [
+                "invoice_id"
+            ],
+            "properties": {
+                "invoice_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.response": {
+            "type": "object",
+            "properties": {
+                "coin": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "store.Chapter": {
             "type": "object",
             "properties": {
@@ -950,6 +1666,38 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "store.Invoice": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_id": {
+                    "type": "string"
+                },
+                "invoice_url": {
+                    "type": "string"
+                },
+                "plan": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -1017,6 +1765,23 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "store.UserUnlock": {
+            "type": "object",
+            "properties": {
+                "chapter_slug": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },

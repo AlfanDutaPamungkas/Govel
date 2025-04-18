@@ -9,6 +9,27 @@ definitions:
     required:
     - password
     type: object
+  main.CreateChapterPayload:
+    properties:
+      chapter_number:
+        type: number
+      content:
+        type: string
+      is_locked:
+        type: boolean
+      price:
+        type: integer
+      slug:
+        maxLength: 100
+        type: string
+      title:
+        type: string
+    required:
+    - chapter_number
+    - content
+    - slug
+    - title
+    type: object
   main.CreateUpdateUsernamePayload:
     properties:
       email:
@@ -65,6 +86,19 @@ definitions:
     required:
     - password
     type: object
+  main.UpdateChapterPayload:
+    properties:
+      chapter_number:
+        type: number
+      content:
+        type: string
+      is_locked:
+        type: boolean
+      price:
+        type: integer
+      title:
+        type: string
+    type: object
   main.UpdateNovelPayload:
     properties:
       author:
@@ -98,6 +132,20 @@ definitions:
       username:
         type: string
     type: object
+  main.WebhookPayload:
+    properties:
+      invoice_id:
+        type: string
+    required:
+    - invoice_id
+    type: object
+  main.response:
+    properties:
+      coin:
+        type: integer
+      status:
+        type: string
+    type: object
   store.Chapter:
     properties:
       chapter_number:
@@ -122,6 +170,27 @@ definitions:
         type: string
       updated_at:
         type: string
+    type: object
+  store.Invoice:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      external_id:
+        type: string
+      id:
+        type: integer
+      invoice_id:
+        type: string
+      invoice_url:
+        type: string
+      plan:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: integer
     type: object
   store.Novel:
     properties:
@@ -167,6 +236,17 @@ definitions:
       username:
         type: string
     type: object
+  store.UserUnlock:
+    properties:
+      chapter_slug:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
   swagger.EnvelopeError:
     properties:
       error:
@@ -210,15 +290,15 @@ paths:
           schema:
             $ref: '#/definitions/swagger.EnvelopeString'
         "400":
-          description: Bad Request
+          description: invalid request
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "404":
-          description: Not Found
+          description: user npt found
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "500":
-          description: Internal Server Error
+          description: internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       summary: Request forgot password
@@ -249,15 +329,15 @@ paths:
           schema:
             $ref: '#/definitions/swagger.EnvelopeString'
         "400":
-          description: Bad Request
+          description: invalid request
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "404":
-          description: Not Found
+          description: invalid token
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "500":
-          description: Internal Server Error
+          description: internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       summary: Reset user password
@@ -283,15 +363,11 @@ paths:
           schema:
             $ref: '#/definitions/swagger.EnvelopeString'
         "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
-        "401":
-          description: Unauthorized
+          description: invalid request
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "500":
-          description: Internal Server Error
+          description: internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       summary: Creates a token
@@ -317,22 +393,105 @@ paths:
           schema:
             $ref: '#/definitions/main.UserWithToken'
         "400":
-          description: Bad Request
+          description: invalid request
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "500":
-          description: Internal Server Error
+          description: internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       summary: Registers a user
       tags:
       - authentication
+  /invoices:
+    get:
+      description: Get user's invoices
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail chapter
+          schema:
+            $ref: '#/definitions/store.Invoice'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Invoice not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Get invoices
+      tags:
+      - invoices
+  /invoices/{plan}:
+    post:
+      description: Get invoices according from plan
+      parameters:
+      - description: Plan
+        in: path
+        name: plan
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail chapter
+          schema:
+            $ref: '#/definitions/store.Invoice'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Create invoice
+      tags:
+      - invoices
+  /invoices/all:
+    get:
+      description: Get all invoices. Admin only
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail chapter
+          schema:
+            $ref: '#/definitions/store.Invoice'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Get all invoices
+      tags:
+      - invoices
   /novels:
     post:
       consumes:
       - multipart/form-data
       description: Create a new novel with title, author, synopsis, genre, and optional
-        image
+        image. Admon only
       parameters:
       - description: Novel Title
         in: formData
@@ -369,10 +528,20 @@ paths:
           description: Invalid input
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
       summary: Create a new novel
       tags:
       - novels
@@ -380,7 +549,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete novel by ID
+      description: Delete novel by ID. Admin only
       parameters:
       - description: Novel ID
         in: path
@@ -394,6 +563,14 @@ paths:
           description: Delete novel succesfully
           schema:
             type: ""
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
         "404":
           description: Novel not found
           schema:
@@ -403,6 +580,7 @@ paths:
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       security:
+      - BearerAuth: []
       - BearerAuth: []
       summary: Delete novel
       tags:
@@ -427,6 +605,10 @@ paths:
           description: Invalid novel ID
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
         "404":
           description: Novel not found
           schema:
@@ -435,6 +617,8 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
       summary: Get novel detail
       tags:
       - novels
@@ -466,6 +650,14 @@ paths:
           description: Invalid request
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
         "404":
           description: Novel not found
           schema:
@@ -476,7 +668,250 @@ paths:
             $ref: '#/definitions/swagger.EnvelopeError'
       security:
       - BearerAuth: []
+      - BearerAuth: []
       summary: Update novel
+      tags:
+      - novels
+  /novels/{novelID}/chapters:
+    post:
+      consumes:
+      - application/json
+      description: Create a new chapter with slug, title, author, content, chapter
+        number, price and status is locked. Admin only
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: chapter payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateChapterPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Chapter created successfully
+          schema:
+            $ref: '#/definitions/store.Chapter'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Create a new chapter
+      tags:
+      - novels
+  /novels/{novelID}/chapters/{slug}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete chapter by slug
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: Chapter Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Delete chapter succesfully
+          schema:
+            type: ""
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel or chapter not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Delete chapter
+      tags:
+      - novels
+    get:
+      description: Get detailed information about a specific chapter by its slug
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: Chapter Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail chapter
+          schema:
+            $ref: '#/definitions/store.Chapter'
+        "400":
+          description: Invalid novel ID or slug
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "402":
+          description: Payment required
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel or chapter not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Get chapter detail
+      tags:
+      - novels
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing chapter's title, content, chapter number, status
+        is_locked or price. Admin only.
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: Chapter Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateChapterPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated chapter
+          schema:
+            $ref: '#/definitions/store.Chapter'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Update chapter
+      tags:
+      - novels
+  /novels/{novelID}/chapters/{slug}/unlock:
+    post:
+      description: User can unlock chapter by coin
+      parameters:
+      - description: Novel ID
+        in: path
+        name: novelID
+        required: true
+        type: integer
+      - description: Chapter Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated chapter
+          schema:
+            $ref: '#/definitions/store.UserUnlock'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "402":
+          description: Insufficient coin
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Novel or chapter not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Unlock chapter
       tags:
       - novels
   /novels/{novelID}/image:
@@ -506,6 +941,14 @@ paths:
           description: Bad request (e.g. no image)
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
         "404":
           description: Novel not found
           schema:
@@ -515,6 +958,7 @@ paths:
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       security:
+      - BearerAuth: []
       - BearerAuth: []
       summary: Change novel image
       tags:
@@ -531,18 +975,16 @@ paths:
           description: User profile data
           schema:
             $ref: '#/definitions/store.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
       summary: Get user profile
       tags:
       - users
@@ -580,6 +1022,8 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
       summary: Update user profile
       tags:
       - users
@@ -613,6 +1057,8 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - users
@@ -634,16 +1080,12 @@ paths:
           description: User account activated
           schema:
             type: ""
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
         "404":
-          description: Not Found
+          description: invalid token
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
         "500":
-          description: Internal Server Error
+          description: internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
       summary: Activate user account
@@ -680,9 +1122,51 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
       summary: Change user password
       tags:
       - users
+  /webhook:
+    post:
+      consumes:
+      - application/json
+      description: Webhook for handle after payment
+      parameters:
+      - description: Webhook payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.WebhookPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment success
+          schema:
+            $ref: '#/definitions/main.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Invoice not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Webhook
+      tags:
+      - transaction
 securityDefinitions:
   ApiKeyAuth:
     in: header

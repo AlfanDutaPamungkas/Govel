@@ -15,6 +15,26 @@ type WebhookPayload struct {
 	InvoiceID string `json:"invoice_id" validate:"required"`
 }
 
+type response struct {
+	Status string `json:"status"`
+	Coin   int64  `json:"coin"`
+}
+
+//	transactionHandler godoc
+//
+//	@Summary		Webhook
+//	@Description	Webhook for handle after payment
+//	@Tags			transaction
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body	WebhookPayload	true	"Webhook payload"
+//	@Security		BearerAuth
+//	@Success		200	{object}	response	"Payment success"
+//	@Failure		400	{object}	swagger.EnvelopeError
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		404	{object}	swagger.EnvelopeError	"Invoice not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/webhook [post]
 func (app *application) transactionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context() 
 
@@ -106,15 +126,12 @@ func (app *application) transactionHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response := struct {
-		Status string `json:"status"`
-		Coin   int64  `json:"coin"`
-	}{
+	response := response{
 		Status: body.Status,
-		Coin:   user.Coin,
+		Coin: user.Coin,
 	}
 
-	if err := app.jsonResponse(w, http.StatusCreated, response); err != nil {
+	if err := app.jsonResponse(w, http.StatusOK, response); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

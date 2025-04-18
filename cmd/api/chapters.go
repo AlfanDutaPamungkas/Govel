@@ -23,6 +23,23 @@ type CreateChapterPayload struct {
 	Price         *int    `json:"price"`
 }
 
+//	createChapterHandler godoc
+//
+//	@Summary		Create a new chapter
+//	@Description	Create a new chapter with slug, title, author, content, chapter number, price and status is locked. Admin only
+//	@Tags			novels
+//	@Accept			json
+//	@Produce		json
+//	@Param			novelID	path		int						true	"Novel ID"
+//	@Param			payload	body		CreateChapterPayload	true	"chapter payload"
+//	@Success		201		{object}	store.Chapter			"Chapter created successfully"
+//	@Security		BearerAuth
+//	@Failure		400	{object}	swagger.EnvelopeError	"Invalid input"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		403	{object}	swagger.EnvelopeError	"Forbidden"
+//	@Failure		404	{object}	swagger.EnvelopeError	"Novel not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID}/chapters [post]
 func (app *application) createChapterHandler(w http.ResponseWriter, r *http.Request) {
 	novel := getNovelFromCtx(r)
 
@@ -81,6 +98,25 @@ type UpdateChapterPayload struct {
 	Price         *int     `json:"price"`
 }
 
+//	updateChapterHandler godoc
+//
+//	@Summary		Update chapter
+//	@Description	Update an existing chapter's title, content, chapter number, status is_locked or price. Admin only.
+//	@Tags			novels
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			novelID	path	int						true	"Novel ID"
+//	@Param			slug	path	string					true	"Chapter Slug"
+//	@Param			payload	body	UpdateChapterPayload	true	"Fields to update"
+//	@Security		BearerAuth
+//	@Success		200	{object}	store.Chapter			"Updated chapter"
+//	@Failure		400	{object}	swagger.EnvelopeError	"Invalid request"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		403	{object}	swagger.EnvelopeError	"Forbidden"
+//	@Failure		404	{object}	swagger.EnvelopeError	"Novel not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID}/chapters/{slug} [patch]
 func (app *application) updateChapterHandler(w http.ResponseWriter, r *http.Request) {
 	chapter := getChapterFromCtx(r)
 
@@ -133,6 +169,23 @@ func (app *application) updateChapterHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+//	deleteChapterHandler godoc
+//
+//	@Summary		Delete chapter
+//	@Description	Delete chapter by slug
+//	@Tags			novels
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			novelID	path	int		true	"Novel ID"
+//	@Param			slug	path	string	true	"Chapter Slug"
+//	@Security		BearerAuth
+//	@Success		204	{}			"Delete chapter succesfully"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		403	{object}	swagger.EnvelopeError	"Forbidden"
+//	@Failure		404	{object}	swagger.EnvelopeError	"Novel or chapter not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID}/chapters/{slug} [delete]
 func (app *application) deleteChapterHandler(w http.ResponseWriter, r *http.Request) {
 	chapter := getChapterFromCtx(r)
 
@@ -149,6 +202,22 @@ func (app *application) deleteChapterHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusNoContent)
 }
 
+//	getDetailChapterHandler godoc
+//
+//	@Summary		Get chapter detail
+//	@Description	Get detailed information about a specific chapter by its slug
+//	@Tags			novels
+//	@Produce		json
+//	@Param			novelID	path	int		true	"Novel ID"
+//	@Param			slug	path	string	true	"Chapter Slug"
+//	@Security		BearerAuth
+//	@Success		200	{object}	store.Chapter			"Detail chapter"
+//	@Failure		400	{object}	swagger.EnvelopeError	"Invalid novel ID or slug"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		402	{object}	swagger.EnvelopeError	"Payment required"
+//	@Failure		404	{object}	swagger.EnvelopeError	"Novel or chapter not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID}/chapters/{slug} [get]
 func (app *application) getDetailChapterHandler(w http.ResponseWriter, r *http.Request){
 	user := getUserFromCtx(r)
 	chapter := getChapterFromCtx(r)
@@ -172,6 +241,23 @@ func (app *application) getDetailChapterHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+//	unlockChapterHandler godoc
+//
+//	@Summary		Unlock chapter
+//	@Description	User can unlock chapter by coin
+//	@Tags			novels
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			novelID	path	int		true	"Novel ID"
+//	@Param			slug	path	string	true	"Chapter Slug"
+//	@Security		BearerAuth
+//	@Success		200											{object}	store.UserUnlock		"Updated chapter"
+//	@Failure		400											{object}	swagger.EnvelopeError	"Invalid request"
+//	@Failure		401											{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		402											{object}	swagger.EnvelopeError	"Insufficient coin"
+//	@Failure		404											{object}	swagger.EnvelopeError	"Novel or chapter not found"
+//	@Failure		500											{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels/{novelID}/chapters/{slug}/unlock 	[post]
 func (app *application) unlockChapterHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 	chapter := getChapterFromCtx(r)

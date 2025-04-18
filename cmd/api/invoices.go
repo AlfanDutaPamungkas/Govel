@@ -11,6 +11,18 @@ import (
 	"github.com/xendit/xendit-go/v6/invoice"
 )
 
+//	createInvoiceHandler godoc
+//
+//	@Summary		Create invoice
+//	@Description	Get invoices according from plan
+//	@Tags			invoices
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			plan	path		string					true	"Plan"
+//	@Success		200		{object}	store.Invoice			"Detail chapter"
+//	@Failure		401		{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/invoices/{plan} [post]
 func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 	plan := chi.URLParam(r, "plan")
@@ -62,6 +74,18 @@ func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+//	getInvoiceHandler godoc
+//
+//	@Summary		Get invoices
+//	@Description	Get user's invoices
+//	@Tags			invoices
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	store.Invoice			"Detail chapter"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		404	{object}	swagger.EnvelopeError	"Invoice not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/invoices [get]
 func (app *application) getInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
@@ -82,6 +106,18 @@ func (app *application) getInvoiceHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+//	getAllInvoicesHandler godoc
+//
+//	@Summary		Get all invoices
+//	@Description	Get all invoices. Admin only
+//	@Tags			invoices
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	store.Invoice			"Detail chapter"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		403	{object}	swagger.EnvelopeError	"Forbidden"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/invoices/all [get]
 func (app *application) getAllInvoicesHandler(w http.ResponseWriter, r *http.Request) {
 	invoices, err  := app.store.Invoices.GetAll(r.Context())
 

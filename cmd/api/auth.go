@@ -32,10 +32,10 @@ type UserWithToken struct {
 //	@Tags			authentication
 //	@Accept			json
 //	@Produce		json
-//	@param			payload	body		RegisterUserPayload	true	"User credentials"
-//	@Success		201		{object}	UserWithToken		"user registered"
-//	@Failure		400		{object}	swagger.EnvelopeError
-//	@Failure		500		{object}	swagger.EnvelopeError
+//	@param			payload	body		RegisterUserPayload		true	"User credentials"
+//	@Success		201		{object}	UserWithToken			"user registered"
+//	@Failure		400		{object}	swagger.EnvelopeError	"invalid request"
+//	@Failure		500		{object}	swagger.EnvelopeError	"internal server error"
 //	@Router			/authentication/user [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
@@ -124,9 +124,8 @@ type CreateUserTokenPayload struct {
 //	@Produce		json
 //	@param			payload	body		CreateUserTokenPayload	true	"User credentials"
 //	@Success		201		{object}	swagger.EnvelopeString	"Token"
-//	@Failure		400		{object}	swagger.EnvelopeError
-//	@Failure		401		{object}	swagger.EnvelopeError
-//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Failure		400		{object}	swagger.EnvelopeError	"invalid request"
+//	@Failure		500		{object}	swagger.EnvelopeError	"internal server error"
 //	@Router			/authentication/token [post]
 func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateUserTokenPayload
@@ -191,9 +190,9 @@ type ForgotPasswordPayload struct {
 //	@Produce		json
 //	@Param			payload	body		ForgotPasswordPayload	true	"Email payload"
 //	@Success		201		{object}	swagger.EnvelopeString	"Plain reset token"
-//	@Failure		400		{object}	swagger.EnvelopeError
-//	@Failure		404		{object}	swagger.EnvelopeError
-//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Failure		400		{object}	swagger.EnvelopeError	"invalid request"
+//	@Failure		404		{object}	swagger.EnvelopeError	"user npt found"
+//	@Failure		500		{object}	swagger.EnvelopeError	"internal server error"
 //	@Router			/authentication/forgot-password [post]
 func (app *application) forgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var payload ForgotPasswordPayload
@@ -270,9 +269,9 @@ type ResetPasswordPayload struct {
 //	@Param			token	path		string					true	"Reset password token"
 //	@Param			payload	body		ResetPasswordPayload	true	"New password payload"
 //	@Success		200		{object}	swagger.EnvelopeString	"Password changed message"
-//	@Failure		400		{object}	swagger.EnvelopeError
-//	@Failure		404		{object}	swagger.EnvelopeError
-//	@Failure		500		{object}	swagger.EnvelopeError
+//	@Failure		400		{object}	swagger.EnvelopeError	"invalid request"
+//	@Failure		404		{object}	swagger.EnvelopeError	"invalid token"
+//	@Failure		500		{object}	swagger.EnvelopeError	"internal server error"
 //	@Router			/authentication/reset-password/{token} [patch]
 func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Request){
 	token := chi.URLParam(r, "token")
