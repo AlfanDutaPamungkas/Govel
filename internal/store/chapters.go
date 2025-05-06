@@ -171,7 +171,7 @@ func (c *ChaptersStore) GetChaptersFromNovelID(ctx context.Context, novelID int6
 			c.is_locked, c.price, c.created_at, c.updated_at,
 			COALESCE(h.is_read, false) AS is_read
 		FROM chapters c
-		LEFT JOIN history h ON h.chapter_id = c.id AND h.user_id = $2
+		LEFT JOIN history h ON h.chapter_slug = c.slug AND h.user_id = $2
 		WHERE c.novel_id = $1
 		ORDER BY c.chapter_number ASC;
 	`
