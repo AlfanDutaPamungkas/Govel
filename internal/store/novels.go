@@ -160,56 +160,6 @@ func (n *NovelsStore) GetAllNovel(ctx context.Context, option string) ([]*Novel,
 	return novels, nil
 }
 
-func (n *NovelsStore) SortByCreatedAt(ctx context.Context) ([]*Novel, error){
-	query := `
-		SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
-		FROM novels
-		ORDER BY created_at DESC
-		LIMIT 10
-	`
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
-	defer cancel()
-
-	rows, err := n.db.Query(
-		ctx,
-		query,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var novels []*Novel
-	for rows.Next() {
-		var novel Novel
-		err := rows.Scan(
-			&novel.ID,
-			&novel.Title,
-			&novel.Author,
-			&novel.Synopsis,
-			&novel.Genre,
-			&novel.ImageURL,
-			&novel.CreatedAt,
-			&novel.UpdatedAt,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		novels = append(novels, &novel)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return novels, nil
-}
-
 func (n *NovelsStore) Update(ctx context.Context, novel *Novel) error {
 	query := `
 		update novels

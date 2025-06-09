@@ -121,6 +121,8 @@ definitions:
         type: string
       id:
         type: integer
+      image_url:
+        type: string
       is_active:
         type: boolean
       token:
@@ -227,6 +229,8 @@ definitions:
         type: string
       id:
         type: integer
+      image_url:
+        type: string
       is_active:
         type: boolean
       token_version:
@@ -1152,6 +1156,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Change user password
+      tags:
+      - users
+  /users/image:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Change User Image
+      parameters:
+      - description: Image file (jpg, png, etc.)
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user with new image
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad request (e.g. no image)
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Change user image
       tags:
       - users
   /webhook:

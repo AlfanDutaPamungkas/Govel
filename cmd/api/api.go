@@ -108,6 +108,7 @@ func (app *application) mount() http.Handler {
 
 				r.Get("/", app.getProfileHandler)
 				r.Patch("/", app.updateUserHandler)
+				r.Patch("/image", app.changeUserImageHandler)
 				r.Patch("/change-password", app.changePasswordHandler)
 			})
 

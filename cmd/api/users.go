@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	cld "github.com/AlfanDutaPamungkas/Govel/internal/cloudinary"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -223,6 +224,59 @@ func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := app.jsonResponse(w, http.StatusOK, "password changed succesfully"); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+//	changeUserImageHandler godoc
+//
+//	@Summary		Change user image
+//	@Description	Change User Image
+//	@Tags			users
+//	@Accept			mpfd
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			image	formData	file		true	"Image file (jpg, png, etc.)"
+//	@Success		200		{object}	store.User	"Updated user with new image"
+//	@Security		BearerAuth
+//	@Failure		400	{object}	swagger.EnvelopeError	"Bad request (e.g. no image)"
+//	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
+//	@Failure		404	{object}	swagger.EnvelopeError	"User not found"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/users/image [patch]
+func (app *application) changeUserImageHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+	ctx := r.Context()
+
+	file, fileHeader, err := r.FormFile("image")
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	defer file.Close()
+
+	imageUrl, err := cld.UploadImage(ctx, app.cld, file, fileHeader)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	user.ImageURL = imageUrl
+	user.UpdatedAt = time.Now()
+
+	if err := app.store.Users.Update(r.Context(), user); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

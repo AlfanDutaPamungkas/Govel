@@ -26,6 +26,7 @@ type User struct {
 	Role         string    `json:"-"`
 	TokenVersion int64     `json:"token_version"`
 	Coin         int64     `json:"coin"`
+	ImageURL     string    `json:"image_url"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -129,7 +130,7 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 
 func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT id, username, email, password, is_active, role, token_version, coin, created_at, updated_at
+		SELECT id, username, email, password, is_active, role, token_version, coin, image_url, created_at, updated_at
 		FROM users
 		WHERE id = $1 AND is_active = true
 	`
@@ -151,6 +152,7 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.Role,
 		&user.TokenVersion,
 		&user.Coin,
+		&user.ImageURL,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
