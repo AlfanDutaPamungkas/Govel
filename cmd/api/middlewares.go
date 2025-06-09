@@ -95,7 +95,7 @@ func (app *application) CheckPremium() func(http.Handler) http.Handler {
 				return
 			}
 
-			err := app.store.UserUnlocks.CheckkUser(r.Context(), user.ID, chapter.Slug)
+			err := app.store.UserUnlocks.CheckUser(r.Context(), user.ID, chapter.Slug)
 			if err != nil {
 				switch {
 				case errors.Is(err, store.ErrNotFound):

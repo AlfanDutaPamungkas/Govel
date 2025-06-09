@@ -59,7 +59,14 @@ type Storage struct {
 	}
 
 	UserUnlocks interface {
-		CheckkUser(context.Context, int64, string) error
+		CheckUser(context.Context, int64, string) error
+	}
+
+	Bookmarks interface {
+		Create(context.Context, *Bookmark) error
+		GetByUserID(context.Context, int64) ([]*Bookmark, error)
+		Delete(context.Context, int64) error
+		GetByID(context.Context, int64) (*Bookmark, error)
 	}
 }
 
@@ -74,6 +81,7 @@ func NewStorage(db *pgxpool.Pool) Storage {
 		Histories: &HistoriesStore{db},
 		Invoices:  invStore,
 		UserUnlocks: unStore,
+		Bookmarks: &BookmarkStore{db},
 	}
 }
 

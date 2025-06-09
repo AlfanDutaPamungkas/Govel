@@ -22,7 +22,7 @@ type UserUnlockStore struct {
 	db *pgxpool.Pool
 }
 
-func (un *UserUnlockStore) CheckkUser(ctx context.Context, userID int64, slug string) error {
+func (un *UserUnlockStore) CheckUser(ctx context.Context, userID int64, slug string) error {
 	query := `
 		SELECT id FROM user_unlocks
 		WHERE user_id = $1 AND chapter_slug = $2

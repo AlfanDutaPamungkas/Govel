@@ -148,6 +148,17 @@ definitions:
       status:
         type: string
     type: object
+  store.Bookmark:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      novel_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
   store.Chapter:
     properties:
       chapter_number:
@@ -522,7 +533,7 @@ paths:
       consumes:
       - multipart/form-data
       description: Create a new novel with title, author, synopsis, genre, and optional
-        image. Admon only
+        image. Admin only
       parameters:
       - description: Novel Title
         in: formData
@@ -703,6 +714,35 @@ paths:
       summary: Update novel
       tags:
       - novels
+  /novels/{novelID}/bookmark:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user bookmark
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Bookmark created successfully
+          schema:
+            $ref: '#/definitions/store.Bookmark'
+        "400":
+          description: Bookmark already exist
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Create a new bookmark
+      tags:
+      - bookmarks
   /novels/{novelID}/chapters:
     post:
       consumes:
@@ -1122,6 +1162,73 @@ paths:
       summary: Activate user account
       tags:
       - users
+  /users/bookmark:
+    get:
+      consumes:
+      - application/json
+      description: Get user bookmark
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get Bookmarks successfully
+          schema:
+            items:
+              $ref: '#/definitions/store.Bookmark'
+            type: array
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Get bookmark
+      tags:
+      - bookmarks
+  /users/bookmark/{bookmarkID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete bookmark by ID
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: bookmarkID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Delete bookmark succesfully
+          schema:
+            type: ""
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Bookmark not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Delete bookmark
+      tags:
+      - novels
   /users/change-password:
     patch:
       consumes:

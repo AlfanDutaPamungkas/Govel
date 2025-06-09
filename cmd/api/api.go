@@ -110,6 +110,8 @@ func (app *application) mount() http.Handler {
 				r.Patch("/", app.updateUserHandler)
 				r.Patch("/image", app.changeUserImageHandler)
 				r.Patch("/change-password", app.changePasswordHandler)
+				r.Get("/bookmark", app.getBookmarkHandler)
+				r.Delete("/bookmark/{bookmarkID}", app.deleteBookmarkHandler)
 			})
 
 			r.Route("/{userID}", func(r chi.Router) {
@@ -135,6 +137,8 @@ func (app *application) mount() http.Handler {
 					r.With(app.AdminOnly()).Patch("/", app.updateNovelHandler)
 					r.With(app.AdminOnly()).Patch("/image", app.changeNovelImageHandler)
 					r.With(app.AdminOnly()).Delete("/", app.deleteNovelHandler)
+
+					r.Post("/bookmark", app.createBookmarkHandler)
 	
 					r.Route("/chapters", func(r chi.Router) {
 						r.With(app.AdminOnly()).Post("/", app.createChapterHandler)

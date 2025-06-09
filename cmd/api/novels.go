@@ -27,7 +27,7 @@ type CreateNovelPayload struct {
 //	createNovelHandler godoc
 //
 //	@Summary		Create a new novel
-//	@Description	Create a new novel with title, author, synopsis, genre, and optional image. Admon only
+//	@Description	Create a new novel with title, author, synopsis, genre, and optional image. Admin only
 //	@Tags			novels
 //	@Accept			multipart/form-data
 //	@Produce		json
