@@ -410,9 +410,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: Detail chapter
+          description: Get user invoice successfully
           schema:
-            $ref: '#/definitions/store.Invoice'
+            items:
+              $ref: '#/definitions/store.Invoice'
+            type: array
         "401":
           description: Unauthorize
           schema:
@@ -442,8 +444,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: Detail chapter
+        "201":
+          description: Create invoice successfully
           schema:
             $ref: '#/definitions/store.Invoice'
         "401":
@@ -466,9 +468,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: Detail chapter
+          description: Get all invoice successfully
           schema:
-            $ref: '#/definitions/store.Invoice'
+            items:
+              $ref: '#/definitions/store.Invoice'
+            type: array
         "401":
           description: Unauthorize
           schema:
@@ -487,6 +491,24 @@ paths:
       tags:
       - invoices
   /novels:
+    get:
+      description: Get all novels not including chapters
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get all Novels successfully
+          schema:
+            items:
+              $ref: '#/definitions/store.Novel'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Get all novels
+      tags:
+      - novels
     post:
       consumes:
       - multipart/form-data
@@ -1168,7 +1190,7 @@ paths:
       tags:
       - transaction
 securityDefinitions:
-  ApiKeyAuth:
+  BearerAuth:
     in: header
     name: Authorization
     type: apiKey

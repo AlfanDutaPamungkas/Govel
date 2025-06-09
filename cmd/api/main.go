@@ -28,7 +28,7 @@ const version = "1.0.0"
 
 //	@BasePath					/v1
 //
-//	@securityDefinitions.apiKey	ApiKeyAuth
+//	@securityDefinitions.apiKey	BearerAuth
 //	@in							header
 //	@name						Authorization
 //	@description

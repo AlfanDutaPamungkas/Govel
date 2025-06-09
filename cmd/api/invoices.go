@@ -19,7 +19,7 @@ import (
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			plan	path		string					true	"Plan"
-//	@Success		200		{object}	store.Invoice			"Detail chapter"
+//	@Success		201		{object}	store.Invoice			"Create invoice successfully"
 //	@Failure		401		{object}	swagger.EnvelopeError	"Unauthorize"
 //	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
 //	@Router			/invoices/{plan} [post]
@@ -81,7 +81,7 @@ func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Requ
 //	@Tags			invoices
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	store.Invoice			"Detail chapter"
+//	@Success		200	{array}		store.Invoice			"Get user invoice successfully"
 //	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
 //	@Failure		404	{object}	swagger.EnvelopeError	"Invoice not found"
 //	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
@@ -113,7 +113,7 @@ func (app *application) getInvoiceHandler(w http.ResponseWriter, r *http.Request
 //	@Tags			invoices
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	store.Invoice			"Detail chapter"
+//	@Success		200	{array}		store.Invoice			"Get all invoice successfully"
 //	@Failure		401	{object}	swagger.EnvelopeError	"Unauthorize"
 //	@Failure		403	{object}	swagger.EnvelopeError	"Forbidden"
 //	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"

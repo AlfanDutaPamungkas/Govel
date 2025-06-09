@@ -244,9 +244,12 @@ const docTemplate = `{
                 "summary": "Get invoices",
                 "responses": {
                     "200": {
-                        "description": "Detail chapter",
+                        "description": "Get user invoice successfully",
                         "schema": {
-                            "$ref": "#/definitions/store.Invoice"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Invoice"
+                            }
                         }
                     },
                     "401": {
@@ -287,9 +290,12 @@ const docTemplate = `{
                 "summary": "Get all invoices",
                 "responses": {
                     "200": {
-                        "description": "Detail chapter",
+                        "description": "Get all invoice successfully",
                         "schema": {
-                            "$ref": "#/definitions/store.Invoice"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Invoice"
+                            }
                         }
                     },
                     "401": {
@@ -338,8 +344,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Detail chapter",
+                    "201": {
+                        "description": "Create invoice successfully",
                         "schema": {
                             "$ref": "#/definitions/store.Invoice"
                         }
@@ -360,6 +366,33 @@ const docTemplate = `{
             }
         },
         "/novels": {
+            "get": {
+                "description": "Get all novels not including chapters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Get all novels",
+                "responses": {
+                    "200": {
+                        "description": "Get all Novels successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Novel"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1803,7 +1836,7 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
+        "BearerAuth": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

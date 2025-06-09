@@ -302,6 +302,28 @@ func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+//	getAllNovelHandler godoc
+//
+//	@Summary		Get all novels
+//	@Description	Get all novels not including chapters
+//	@Tags			novels
+//	@Produce		json
+//	@Success		200	{array}		store.Novel				"Get all Novels successfully"
+//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/novels [get]
+func (app *application) getAllNovelHandler(w http.ResponseWriter, r *http.Request){
+	novels, err := app.store.Novels.GetAllNovel(r.Context())
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, novels); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (app *application) novelsContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

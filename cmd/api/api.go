@@ -119,34 +119,39 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/novels", func(r chi.Router) {
-			r.Use(app.AuthTokenMiddleware)
+			r.Get("/", app.getAllNovelHandler)
 
-			r.With(app.AdminOnly()).Post("/", app.createNovelHandler)
-
-			r.Route("/{novelID}", func(r chi.Router) {
-				r.Use(app.novelsContextMiddleware)
-
-				r.Get("/", app.getNovelHandler)
-
-				r.With(app.AdminOnly()).Patch("/", app.updateNovelHandler)
-				r.With(app.AdminOnly()).Patch("/image", app.changeNovelImageHandler)
-				r.With(app.AdminOnly()).Delete("/", app.deleteNovelHandler)
-
-				r.Route("/chapters", func(r chi.Router) {
-					r.With(app.AdminOnly()).Post("/", app.createChapterHandler)
-
-					r.Route("/{slug}", func(r chi.Router) {
-						r.Use(app.chaptersContextMiddleware)
-
-						r.With(app.CheckPremium()).Get("/", app.getDetailChapterHandler)
-
-						r.With(app.AdminOnly()).Patch("/", app.updateChapterHandler)
-						r.With(app.AdminOnly()).Delete("/", app.deleteChapterHandler)
-
-						r.Post("/unlock", app.unlockChapterHandler)
+			r.Group(func(r chi.Router) {
+				r.Use(app.AuthTokenMiddleware)
+	
+				r.With(app.AdminOnly()).Post("/", app.createNovelHandler)
+	
+				r.Route("/{novelID}", func(r chi.Router) {
+					r.Use(app.novelsContextMiddleware)
+	
+					r.Get("/", app.getNovelHandler)
+	
+					r.With(app.AdminOnly()).Patch("/", app.updateNovelHandler)
+					r.With(app.AdminOnly()).Patch("/image", app.changeNovelImageHandler)
+					r.With(app.AdminOnly()).Delete("/", app.deleteNovelHandler)
+	
+					r.Route("/chapters", func(r chi.Router) {
+						r.With(app.AdminOnly()).Post("/", app.createChapterHandler)
+	
+						r.Route("/{slug}", func(r chi.Router) {
+							r.Use(app.chaptersContextMiddleware)
+	
+							r.With(app.CheckPremium()).Get("/", app.getDetailChapterHandler)
+	
+							r.With(app.AdminOnly()).Patch("/", app.updateChapterHandler)
+							r.With(app.AdminOnly()).Delete("/", app.deleteChapterHandler)
+	
+							r.Post("/unlock", app.unlockChapterHandler)
+						})
 					})
 				})
 			})
+
 		})
 
 		r.Route("/invoices", func(r chi.Router) {
