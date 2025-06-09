@@ -62,6 +62,11 @@ func (app *application) transactionHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if invoice.Status == "PAID" {
+		app.badRequestResponse(w, r, errors.New("invoice already paid"))
+		return
+	}
+
 	url := fmt.Sprintf("https://api.xendit.co/invoices/%s", invoice.InvoiceID)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

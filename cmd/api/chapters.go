@@ -84,6 +84,18 @@ func (app *application) createChapterHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	novel.UpdatedAt = time.Now()
+
+	if err := app.store.Novels.Update(r.Context(), novel); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
 	if err := app.jsonResponse(w, http.StatusCreated, chapter); err != nil {
 		app.internalServerError(w, r, err)
 		return

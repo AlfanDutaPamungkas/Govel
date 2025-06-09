@@ -308,13 +308,34 @@ func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) 
 //	@Description	Get all novels not including chapters
 //	@Tags			novels
 //	@Produce		json
-//	@Success		200	{array}		store.Novel				"Get all Novels successfully"
-//	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
+//	@Param			sorted_by	query		string					false	"Sort by created_at or updated_at"
+//	@Success		200			{array}		store.Novel				"Get all Novels successfully"
+//	@Failure		500			{object}	swagger.EnvelopeError	"Internal server error"
 //	@Router			/novels [get]
 func (app *application) getAllNovelHandler(w http.ResponseWriter, r *http.Request){
-	novels, err := app.store.Novels.GetAllNovel(r.Context())
+	sortBy := r.URL.Query().Get("sort_by")
+
+	var novels []*store.Novel
+	var err error
+
+	if sortBy == "" {
+		novels, err = app.store.Novels.GetAllNovel(r.Context(), "")
+	} else if sortBy == "created_at" {
+		novels, err = app.store.Novels.GetAllNovel(r.Context(), "created_at")
+	} else if sortBy == "updated_at" {
+		novels, err = app.store.Novels.GetAllNovel(r.Context(), "updated_at")
+	} else{
+		app.notFoundResponse(w, r, errors.New("not found"))
+		return
+	}
+
 	if err != nil {
-		app.internalServerError(w, r, err)
+		switch {
+		case errors.Is(err, store.ErrInvalidOption):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 

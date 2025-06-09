@@ -375,6 +375,14 @@ const docTemplate = `{
                     "novels"
                 ],
                 "summary": "Get all novels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sort by created_at or updated_at",
+                        "name": "sorted_by",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Get all Novels successfully",

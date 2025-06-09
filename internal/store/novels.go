@@ -9,6 +9,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var ErrInvalidOption = errors.New("invalid option")
+
 type Novel struct {
 	ID        int64     `json:"id"`
 	Title     string    `json:"title"`
@@ -90,10 +92,80 @@ func (n *NovelsStore) GetByID(ctx context.Context, novelID int64) (*Novel, error
 	return &novel, err
 }
 
-func (n *NovelsStore) GetAllNovel(ctx context.Context) ([]*Novel, error) {
+func (n *NovelsStore) GetAllNovel(ctx context.Context, option string) ([]*Novel, error) {
+	var query string
+
+	if option == "" {
+		query = `
+			SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
+			FROM novels
+		`
+	} else if option == "created_at" {
+		query = `
+			SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
+			FROM novels
+			ORDER BY created_at DESC
+			LIMIT 10
+		`
+	} else if option == "updated_at" {
+		query = `
+			SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
+			FROM novels
+			ORDER BY updated_at DESC
+			LIMIT 10
+		`
+	} else {
+		return nil, ErrInvalidOption
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := n.db.Query(
+		ctx,
+		query,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var novels []*Novel
+	for rows.Next() {
+		var novel Novel
+		err := rows.Scan(
+			&novel.ID,
+			&novel.Title,
+			&novel.Author,
+			&novel.Synopsis,
+			&novel.Genre,
+			&novel.ImageURL,
+			&novel.CreatedAt,
+			&novel.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		novels = append(novels, &novel)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return novels, nil
+}
+
+func (n *NovelsStore) SortByCreatedAt(ctx context.Context) ([]*Novel, error){
 	query := `
 		SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
 		FROM novels
+		ORDER BY created_at DESC
+		LIMIT 10
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)

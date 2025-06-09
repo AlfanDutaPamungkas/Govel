@@ -117,9 +117,9 @@ func (i *InvoicesStore) GetByInvoiceID(ctx context.Context, invoiceID string) (*
 	return &invoice, err
 }
 
-func (i *InvoicesStore) GetByUserID(ctx context.Context, userID int64) (*Invoice, error) {
+func (i *InvoicesStore) GetByUserID(ctx context.Context, userID int64) ([]*Invoice, error) {
 	query := `
-		SELECT id, user_id, external_id, invoice_id, status, amount, plan, created_at
+		SELECT id, user_id, external_id, invoice_id, invoice_url, status, amount, plan, created_at
 		FROM invoices
 		WHERE user_id = $1
 	`
@@ -127,33 +127,46 @@ func (i *InvoicesStore) GetByUserID(ctx context.Context, userID int64) (*Invoice
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	var invoice Invoice
-
-	err := i.db.QueryRow(
+	rows, err := i.db.Query(
 		ctx,
 		query,
 		userID,
-	).Scan(
-		&invoice.ID,
-		&invoice.UserID,
-		&invoice.ExternalID,
-		&invoice.InvoiceID,
-		&invoice.Status,
-		&invoice.Amount,
-		&invoice.Plan,
-		&invoice.CreatedAt,
 	)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			return nil, ErrNotFound
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
 
-	return &invoice, err
+	defer rows.Close()
+
+	var invoices []*Invoice
+
+	for rows.Next(){
+		var invoice Invoice
+		err := rows.Scan(
+			&invoice.ID,
+			&invoice.UserID,
+			&invoice.ExternalID,
+			&invoice.InvoiceID,
+			&invoice.InvoiceURL,
+			&invoice.Status,
+			&invoice.Amount,
+			&invoice.Plan,
+			&invoice.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		invoices = append(invoices, &invoice)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return invoices, nil
 }
 
 func (i *InvoicesStore) GetAll(ctx context.Context) ([]*Invoice, error) {

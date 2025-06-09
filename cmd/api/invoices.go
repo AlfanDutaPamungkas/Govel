@@ -89,18 +89,13 @@ func (app *application) createInvoiceHandler(w http.ResponseWriter, r *http.Requ
 func (app *application) getInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
-	invoice, err := app.store.Invoices.GetByUserID(r.Context(), user.ID)
+	invoices, err := app.store.Invoices.GetByUserID(r.Context(), user.ID)
 	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNotFound):
-			app.notFoundResponse(w, r, err)
-		default:
-			app.internalServerError(w, r, err)
-		}
+		app.internalServerError(w, r, err)
 		return
 	}
 
-	if err := app.jsonResponse(w, http.StatusCreated, invoice); err != nil {
+	if err := app.jsonResponse(w, http.StatusCreated, invoices); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

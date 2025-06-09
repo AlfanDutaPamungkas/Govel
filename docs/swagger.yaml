@@ -493,6 +493,11 @@ paths:
   /novels:
     get:
       description: Get all novels not including chapters
+      parameters:
+      - description: Sort by created_at or updated_at
+        in: query
+        name: sorted_by
+        type: string
       produces:
       - application/json
       responses:
