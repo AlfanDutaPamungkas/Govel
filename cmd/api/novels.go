@@ -309,26 +309,20 @@ func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) 
 //	@Tags			novels
 //	@Produce		json
 //	@Param			sorted_by	query		string					false	"Sort by created_at or updated_at"
+//	@Param			search		query		string					false	"Search by title"
 //	@Success		200			{array}		store.Novel				"Get all Novels successfully"
 //	@Failure		500			{object}	swagger.EnvelopeError	"Internal server error"
 //	@Router			/novels [get]
 func (app *application) getAllNovelHandler(w http.ResponseWriter, r *http.Request){
 	sortBy := r.URL.Query().Get("sort_by")
+	search := r.URL.Query().Get("search")
 
-	var novels []*store.Novel
-	var err error
-
-	if sortBy == "" {
-		novels, err = app.store.Novels.GetAllNovel(r.Context(), "")
-	} else if sortBy == "created_at" {
-		novels, err = app.store.Novels.GetAllNovel(r.Context(), "created_at")
-	} else if sortBy == "updated_at" {
-		novels, err = app.store.Novels.GetAllNovel(r.Context(), "updated_at")
-	} else{
-		app.notFoundResponse(w, r, errors.New("not found"))
+	if sortBy != "" && sortBy != "created_at" && sortBy != "updated_at" {
+		app.notFoundResponse(w, r, errors.New("invalid sort_by option"))
 		return
 	}
 
+	novels, err := app.store.Novels.GetAllNovel(r.Context(), sortBy, search)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrInvalidOption):

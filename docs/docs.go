@@ -381,6 +381,12 @@ const docTemplate = `{
                         "description": "Sort by created_at or updated_at",
                         "name": "sorted_by",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by title",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -92,44 +93,34 @@ func (n *NovelsStore) GetByID(ctx context.Context, novelID int64) (*Novel, error
 	return &novel, err
 }
 
-func (n *NovelsStore) GetAllNovel(ctx context.Context, option string) ([]*Novel, error) {
+func (n *NovelsStore) GetAllNovel(ctx context.Context, order string, search string) ([]*Novel, error) {
 	var query string
+	var args []interface{}
 
-	if option == "" {
-		query = `
-			SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
-			FROM novels
-		`
-	} else if option == "created_at" {
-		query = `
-			SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
-			FROM novels
-			ORDER BY created_at DESC
-			LIMIT 10
-		`
-	} else if option == "updated_at" {
-		query = `
-			SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
-			FROM novels
-			ORDER BY updated_at DESC
-			LIMIT 10
-		`
-	} else {
+	query = `
+		SELECT id, title, author, synopsis, genre, image_url, created_at, updated_at
+		FROM novels
+	`
+
+	if search != "" {
+		query += ` WHERE title_fts @@ plainto_tsquery('english', $1)`
+		args = append(args, search)
+	}
+
+	if order == "created_at" || order == "updated_at" {
+		query += fmt.Sprintf(" ORDER BY %s DESC", order)
+		query += " LIMIT 10"
+	} else if order != "" {
 		return nil, ErrInvalidOption
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := n.db.Query(
-		ctx,
-		query,
-	)
-
+	rows, err := n.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	var novels []*Novel
@@ -145,20 +136,19 @@ func (n *NovelsStore) GetAllNovel(ctx context.Context, option string) ([]*Novel,
 			&novel.CreatedAt,
 			&novel.UpdatedAt,
 		)
-
 		if err != nil {
 			return nil, err
 		}
-
 		novels = append(novels, &novel)
 	}
 
-	if err = rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
 	return novels, nil
 }
+
 
 func (n *NovelsStore) Update(ctx context.Context, novel *Novel) error {
 	query := `
