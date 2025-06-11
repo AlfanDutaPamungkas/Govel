@@ -19,6 +19,7 @@ type Invoice struct {
 	Amount     float64   `json:"amount"`
 	Plan       string    `json:"plan"`
 	CreatedAt  time.Time `json:"created_at"`
+	User       User      `json:"user"`
 }
 
 type InvoicesStore struct {
@@ -141,7 +142,7 @@ func (i *InvoicesStore) GetByUserID(ctx context.Context, userID int64) ([]*Invoi
 
 	var invoices []*Invoice
 
-	for rows.Next(){
+	for rows.Next() {
 		var invoice Invoice
 		err := rows.Scan(
 			&invoice.ID,
@@ -174,7 +175,7 @@ func (i *InvoicesStore) GetAll(ctx context.Context) ([]*Invoice, error) {
 		SELECT id, user_id, external_id, invoice_id, status, amount, plan, created_at
 		FROM invoices
 	`
-	
+
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
@@ -190,7 +191,7 @@ func (i *InvoicesStore) GetAll(ctx context.Context) ([]*Invoice, error) {
 	defer rows.Close()
 
 	var invoices []*Invoice
-	for rows.Next(){
+	for rows.Next() {
 		var invoice Invoice
 		err := rows.Scan(
 			&invoice.ID,

@@ -95,6 +95,10 @@ func (app *application) getInvoiceHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	for _, invoice := range invoices {
+		invoice.User = *user
+	}
+
 	if err := app.jsonResponse(w, http.StatusCreated, invoices); err != nil {
 		app.internalServerError(w, r, err)
 		return
