@@ -1615,69 +1615,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/webhook": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Webhook for handle after payment",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "transaction"
-                ],
-                "summary": "Webhook",
-                "parameters": [
-                    {
-                        "description": "Webhook payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.WebhookPayload"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Payment success",
-                        "schema": {
-                            "$ref": "#/definitions/main.response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorize",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    },
-                    "404": {
-                        "description": "Invoice not found",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.EnvelopeError"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -1872,28 +1809,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.WebhookPayload": {
-            "type": "object",
-            "required": [
-                "invoice_id"
-            ],
-            "properties": {
-                "invoice_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.response": {
-            "type": "object",
-            "properties": {
-                "coin": {
-                    "type": "integer"
-                },
-                "status": {
                     "type": "string"
                 }
             }

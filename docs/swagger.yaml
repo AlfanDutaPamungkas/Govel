@@ -134,20 +134,6 @@ definitions:
       username:
         type: string
     type: object
-  main.WebhookPayload:
-    properties:
-      invoice_id:
-        type: string
-    required:
-    - invoice_id
-    type: object
-  main.response:
-    properties:
-      coin:
-        type: integer
-      status:
-        type: string
-    type: object
   store.Bookmark:
     properties:
       created_at:
@@ -1309,46 +1295,6 @@ paths:
       summary: Change user image
       tags:
       - users
-  /webhook:
-    post:
-      consumes:
-      - application/json
-      description: Webhook for handle after payment
-      parameters:
-      - description: Webhook payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.WebhookPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Payment success
-          schema:
-            $ref: '#/definitions/main.response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
-        "401":
-          description: Unauthorize
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
-        "404":
-          description: Invoice not found
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/swagger.EnvelopeError'
-      security:
-      - BearerAuth: []
-      summary: Webhook
-      tags:
-      - transaction
 securityDefinitions:
   BearerAuth:
     in: header
