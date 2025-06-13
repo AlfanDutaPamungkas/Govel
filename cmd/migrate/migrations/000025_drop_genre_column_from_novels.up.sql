@@ -1,0 +1,1 @@
+ALTER TABLE novels DROP COLUMN IF EXISTS genre;

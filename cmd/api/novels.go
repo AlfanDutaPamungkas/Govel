@@ -8,7 +8,6 @@ import (
 	"time"
 
 	cld "github.com/AlfanDutaPamungkas/Govel/internal/cloudinary"
-	"github.com/AlfanDutaPamungkas/Govel/internal/helper"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -18,13 +17,13 @@ type novelKey string
 const novelCtx novelKey = "novel"
 
 type CreateNovelPayload struct {
-	Title    string `schema:"title" validate:"required"`
-	Author   string `schema:"author" validate:"required,max=255"`
-	Synopsis string `schema:"synopsis" validate:"required"`
-	Genre    string `schema:"genre" validate:"required"`
+	Title    string  `schema:"title" validate:"required"`
+	Author   string  `schema:"author" validate:"required,max=255"`
+	Synopsis string  `schema:"synopsis" validate:"required"`
+	GenreIDs []int32 `schema:"genre_ids" validate:"required,min=1,dive,gt=0"`
 }
 
-//	createNovelHandler godoc
+// createNovelHandler godoc
 //
 //	@Summary		Create a new novel
 //	@Description	Create a new novel with title, author, synopsis, genre, and optional image. Admin only
@@ -34,7 +33,7 @@ type CreateNovelPayload struct {
 //	@Param			title		formData	string	true	"Novel Title"
 //	@Param			author		formData	string	true	"Author of the Novel"
 //	@Param			synopsis	formData	string	true	"Synopsis of the Novel"
-//	@Param			genre		formData	string	true	"Genre of the Novel"
+//	@Param			genre_ids	formData	[]int	true	"Genre IDs (multiple values allowed)"
 //	@Param			image		formData	file	false	"Cover image of the Novel"
 //	@Security		BearerAuth
 //	@Success		201	{object}	store.Novel				"Novel created successfully"
@@ -78,17 +77,14 @@ func (app *application) createNovelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	genres := helper.ConvertGenre(payload.Genre)
-
 	novel := &store.Novel{
 		Title:    payload.Title,
 		Author:   payload.Author,
 		Synopsis: payload.Synopsis,
-		Genre:    genres,
 		ImageURL: imageUrl,
 	}
 
-	if err := app.store.Novels.Create(ctx, novel); err != nil {
+	if err := app.store.Novels.CreateNovelAndInsertGenres(ctx, novel, payload.GenreIDs); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -100,13 +96,13 @@ func (app *application) createNovelHandler(w http.ResponseWriter, r *http.Reques
 }
 
 type UpdateNovelPayload struct {
-	Title    string `json:"title"`
-	Author   string `json:"author" validate:"omitempty,max=255"`
-	Synopsis string `json:"synopsis"`
-	Genre    string `json:"genre"`
+	Title    string  `json:"title"`
+	Author   string  `json:"author" validate:"omitempty,max=255"`
+	Synopsis string  `json:"synopsis"`
+	GenreIDs []int32 `json:"genre_ids"`
 }
 
-//	updateNovelHandler godoc
+// updateNovelHandler godoc
 //
 //	@Summary		Update novel
 //	@Description	Update an existing novel's title, author, synopsis, or genre. Admin only.
@@ -125,6 +121,7 @@ type UpdateNovelPayload struct {
 //	@Failure		500	{object}	swagger.EnvelopeError	"Internal server error"
 //	@Router			/novels/{novelID} [patch]
 func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	novel := getNovelFromCtx(r)
 
 	var payload UpdateNovelPayload
@@ -138,7 +135,7 @@ func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if payload.Title == "" && payload.Author == "" && payload.Synopsis == "" && payload.Genre == "" {
+	if payload.Title == "" && payload.Author == "" && payload.Synopsis == "" && len(payload.GenreIDs) == 0 {
 		app.badRequestResponse(w, r, errors.New("please provide at least one field"))
 		return
 	}
@@ -155,14 +152,16 @@ func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Reques
 		novel.Synopsis = payload.Synopsis
 	}
 
-	if payload.Genre != "" {
-		genres := helper.ConvertGenre(payload.Genre)
-		novel.Genre = genres
+	if len(payload.GenreIDs) != 0 {
+		if err := app.store.Novels.UpdateNovelGenres(ctx, novel.ID, payload.GenreIDs); err != nil {
+			app.internalServerError(w, r, err)
+			return
+		}
 	}
 
 	novel.UpdatedAt = time.Now()
 
-	if err := app.store.Novels.Update(r.Context(), novel); err != nil {
+	if err := app.store.Novels.Update(ctx, novel); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)
@@ -178,7 +177,7 @@ func (app *application) updateNovelHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-//	changeNovelImageHandler godoc
+// changeNovelImageHandler godoc
 //
 //	@Summary		Change novel image
 //	@Description	Update the cover image of a novel. Admin only.
@@ -233,7 +232,7 @@ func (app *application) changeNovelImageHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-//	deleteNovelHandler godoc
+// deleteNovelHandler godoc
 //
 //	@Summary		Delete novel
 //	@Description	Delete novel by ID. Admin only
@@ -270,7 +269,7 @@ func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
-//	getNovelHandler godoc
+// getNovelHandler godoc
 //
 //	@Summary		Get novel detail
 //	@Description	Get detailed information about a specific novel by its ID, including chapters
@@ -287,8 +286,9 @@ func (app *application) deleteNovelHandler(w http.ResponseWriter, r *http.Reques
 func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 	novel := getNovelFromCtx(r)
+	ctx := r.Context()
 
-	chapters, err := app.store.Chapters.GetChaptersFromNovelID(r.Context(), novel.ID, user.ID)
+	chapters, err := app.store.Chapters.GetChaptersFromNovelID(ctx, novel.ID, user.ID)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return
@@ -296,13 +296,21 @@ func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) 
 
 	novel.Chapters = chapters
 
+	genres, err := app.store.Genres.GetGenresFromNovelID(ctx, novel.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	novel.Genre = genres
+
 	if err := app.jsonResponse(w, http.StatusOK, novel); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
 }
 
-//	getAllNovelHandler godoc
+// getAllNovelHandler godoc
 //
 //	@Summary		Get all novels
 //	@Description	Get all novels not including chapters
@@ -313,7 +321,7 @@ func (app *application) getNovelHandler(w http.ResponseWriter, r *http.Request) 
 //	@Success		200			{array}		store.Novel				"Get all Novels successfully"
 //	@Failure		500			{object}	swagger.EnvelopeError	"Internal server error"
 //	@Router			/novels [get]
-func (app *application) getAllNovelHandler(w http.ResponseWriter, r *http.Request){
+func (app *application) getAllNovelHandler(w http.ResponseWriter, r *http.Request) {
 	sortBy := r.URL.Query().Get("sort_by")
 	search := r.URL.Query().Get("search")
 

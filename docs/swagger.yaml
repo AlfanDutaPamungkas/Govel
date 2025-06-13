@@ -60,6 +60,14 @@ definitions:
     required:
     - email
     type: object
+  main.GenrePayload:
+    properties:
+      name:
+        maxLength: 255
+        type: string
+    required:
+    - name
+    type: object
   main.RegisterUserPayload:
     properties:
       email:
@@ -104,8 +112,10 @@ definitions:
       author:
         maxLength: 255
         type: string
-      genre:
-        type: string
+      genre_ids:
+        items:
+          type: integer
+        type: array
       synopsis:
         type: string
       title:
@@ -170,6 +180,13 @@ definitions:
       updated_at:
         type: string
     type: object
+  store.Genre:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   store.Invoice:
     properties:
       amount:
@@ -188,6 +205,8 @@ definitions:
         type: string
       status:
         type: string
+      user:
+        $ref: '#/definitions/store.User'
       user_id:
         type: integer
     type: object
@@ -203,7 +222,7 @@ definitions:
         type: string
       genre:
         items:
-          type: string
+          $ref: '#/definitions/store.Genre'
         type: array
       id:
         type: integer
@@ -404,6 +423,109 @@ paths:
       summary: Registers a user
       tags:
       - authentication
+  /genres:
+    get:
+      description: Get all genres
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get all genres successfully
+          schema:
+            items:
+              $ref: '#/definitions/store.Genre'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Get all genres
+      tags:
+      - genres
+    post:
+      consumes:
+      - application/json
+      description: Create a new genre. Admin only
+      parameters:
+      - description: Genre Name
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.GenrePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Genre created successfully
+          schema:
+            $ref: '#/definitions/store.Genre'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: Create a new genre
+      tags:
+      - genres
+  /genres/{genreID}:
+    post:
+      consumes:
+      - application/json
+      description: update genre. Admin only
+      parameters:
+      - description: Genre ID
+        in: path
+        name: genreID
+        required: true
+        type: integer
+      - description: Genre Name
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.GenrePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Genre updated successfully
+          schema:
+            $ref: '#/definitions/store.Genre'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      summary: update genre
+      tags:
+      - genres
   /invoices:
     get:
       description: Get user's invoices
@@ -540,11 +662,14 @@ paths:
         name: synopsis
         required: true
         type: string
-      - description: Genre of the Novel
+      - collectionFormat: csv
+        description: Genre IDs (multiple values allowed)
         in: formData
-        name: genre
+        items:
+          type: integer
+        name: genre_ids
         required: true
-        type: string
+        type: array
       - description: Cover image of the Novel
         in: formData
         name: image
@@ -577,6 +702,46 @@ paths:
       summary: Create a new novel
       tags:
       - novels
+  /novels/{genreID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete genre by ID. Admin only
+      parameters:
+      - description: Genre ID
+        in: path
+        name: genreID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Delete genre succesfully
+          schema:
+            type: ""
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "404":
+          description: Genre not found
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Delete genre
+      tags:
+      - genres
   /novels/{novelID}:
     delete:
       consumes:

@@ -121,6 +121,23 @@ func (app *application) mount() http.Handler {
 			})
 		})
 
+		r.Route("/genres", func(r chi.Router) {
+			r.Get("/", app.getAllGenreHandler)
+
+			r.Group(func(r chi.Router) {
+				r.Use(app.AuthTokenMiddleware)
+	
+				r.With(app.AdminOnly()).Post("/", app.createGenreHandler)
+
+				r.Route("/{genreID}", func(r chi.Router) {
+					r.Use(app.genresContextMiddleware)
+
+					r.With(app.AdminOnly()).Put("/", app.updateGenreHandler)
+					r.With(app.AdminOnly()).Delete("/", app.deleteGenreHandler)
+				})
+			})
+		})
+
 		r.Route("/novels", func(r chi.Router) {
 			r.Get("/", app.getAllNovelHandler)
 

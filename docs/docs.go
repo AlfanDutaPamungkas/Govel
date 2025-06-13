@@ -227,6 +227,166 @@ const docTemplate = `{
                 }
             }
         },
+        "/genres": {
+            "get": {
+                "description": "Get all genres",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "genres"
+                ],
+                "summary": "Get all genres",
+                "responses": {
+                    "200": {
+                        "description": "Get all genres successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Genre"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new genre. Admin only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "genres"
+                ],
+                "summary": "Create a new genre",
+                "parameters": [
+                    {
+                        "description": "Genre Name",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.GenrePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Genre created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/store.Genre"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/genres/{genreID}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "update genre. Admin only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "genres"
+                ],
+                "summary": "update genre",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Genre ID",
+                        "name": "genreID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Genre Name",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.GenrePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Genre updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/store.Genre"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
         "/invoices": {
             "get": {
                 "security": [
@@ -447,9 +607,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Genre of the Novel",
-                        "name": "genre",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Genre IDs (multiple values allowed)",
+                        "name": "genre_ids",
                         "in": "formData",
                         "required": true
                     },
@@ -481,6 +645,70 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
+        "/novels/{genreID}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete genre by ID. Admin only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "genres"
+                ],
+                "summary": "Delete genre",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Genre ID",
+                        "name": "genreID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Delete genre succesfully",
+                        "schema": {
+                            "type": ""
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorize",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    },
+                    "404": {
+                        "description": "Genre not found",
                         "schema": {
                             "$ref": "#/definitions/swagger.EnvelopeError"
                         }
@@ -1704,6 +1932,18 @@ const docTemplate = `{
                 }
             }
         },
+        "main.GenrePayload": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
         "main.RegisterUserPayload": {
             "type": "object",
             "required": [
@@ -1767,8 +2007,11 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255
                 },
-                "genre": {
-                    "type": "string"
+                "genre_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "synopsis": {
                     "type": "string"
@@ -1868,6 +2111,17 @@ const docTemplate = `{
                 }
             }
         },
+        "store.Genre": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "store.Invoice": {
             "type": "object",
             "properties": {
@@ -1895,6 +2149,9 @@ const docTemplate = `{
                 "status": {
                     "type": "string"
                 },
+                "user": {
+                    "$ref": "#/definitions/store.User"
+                },
                 "user_id": {
                     "type": "integer"
                 }
@@ -1918,7 +2175,7 @@ const docTemplate = `{
                 "genre": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/store.Genre"
                     }
                 },
                 "id": {

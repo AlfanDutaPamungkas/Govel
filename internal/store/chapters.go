@@ -151,14 +151,13 @@ func (c *ChaptersStore) Delete(ctx context.Context, slug string) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := c.db.Exec(ctx, query, slug)
+	cmdTag, err := c.db.Exec(ctx, query, slug)
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			return ErrNotFound
-		default:
-			return err
-		}
+		return err
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return ErrNotFound
 	}
 
 	return nil

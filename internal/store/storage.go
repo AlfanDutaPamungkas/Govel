@@ -32,11 +32,22 @@ type Storage struct {
 	}
 
 	Novels interface {
-		Create(context.Context, *Novel) error
+		Create(context.Context, pgx.Tx, *Novel) error
+		CreateNovelAndInsertGenres(context.Context, *Novel, []int32) error
 		GetByID(context.Context, int64) (*Novel, error)
 		GetAllNovel(context.Context, string, string) ([]*Novel, error)
 		Update(context.Context, *Novel) error
+		UpdateNovelGenres(context.Context, int64, []int32) error
 		Delete(context.Context, int64) error
+	}
+
+	Genres interface {
+		Create(context.Context, *Genre) error
+		GetAllGenre(context.Context) ([]*Genre, error)
+		GetByID(context.Context, int32) (*Genre, error)
+		GetGenresFromNovelID(context.Context, int64) ([]*Genre, error)
+		Update(context.Context, *Genre) error
+		Delete(context.Context, int32) error
 	}
 
 	Chapters interface {
@@ -75,27 +86,34 @@ func NewStorage(db *pgxpool.Pool) Storage {
 	unStore := &UserUnlockStore{db}
 
 	return Storage{
-		Users:     &UsersStore{db, invStore, unStore},
-		Novels:    &NovelsStore{db},
-		Chapters:  &ChaptersStore{db},
-		Histories: &HistoriesStore{db},
-		Invoices:  invStore,
+		Users:       &UsersStore{db, invStore, unStore},
+		Novels:      &NovelsStore{db},
+		Genres:      &GenresStore{db},
+		Chapters:    &ChaptersStore{db},
+		Histories:   &HistoriesStore{db},
+		Invoices:    invStore,
 		UserUnlocks: unStore,
-		Bookmarks: &BookmarkStore{db},
+		Bookmarks:   &BookmarkStore{db},
 	}
 }
 
-func withTx(db *pgxpool.Pool, ctx context.Context, fn func(tx pgx.Tx) error) error {
+func withTx(db *pgxpool.Pool, ctx context.Context, fn func(tx pgx.Tx) error) (err error) {
 	tx, err := db.Begin(ctx)
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+		}
+	}()
 
-	if err := fn(tx); err != nil {
+	err = fn(tx)
+	if err != nil {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	err = tx.Commit(ctx)
+	return err
 }

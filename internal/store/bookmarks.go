@@ -137,9 +137,13 @@ func (b *BookmarkStore) Delete(ctx context.Context, bookmarkID int64) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := b.db.Exec(ctx, query, bookmarkID)
+	cmdTag, err := b.db.Exec(ctx, query, bookmarkID)
 	if err != nil {
 		return err
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return ErrNotFound
 	}
 
 	return nil
