@@ -36,6 +36,7 @@ type Storage struct {
 		CreateNovelAndInsertGenres(context.Context, *Novel, []int32) error
 		GetByID(context.Context, int64) (*Novel, error)
 		GetAllNovel(context.Context, string, string) ([]*Novel, error)
+		GetNovelsFromGenreID(context.Context, int32) ([]*Novel, error)
 		Update(context.Context, *Novel) error
 		UpdateNovelGenres(context.Context, int64, []int32) error
 		Delete(context.Context, int64) error

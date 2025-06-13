@@ -160,6 +160,47 @@ func (n *NovelsStore) GetAllNovel(ctx context.Context, order string, search stri
 	return novels, nil
 }
 
+func (n *NovelsStore) GetNovelsFromGenreID(ctx context.Context, genreID int32) ([]*Novel, error) {
+	query := `
+		SELECT n.id, n.title, n.author, n.synopsis, n.image_url, n.created_at, n.updated_at
+		FROM novel_genres ng
+		LEFT JOIN novels n on n.id = ng.novel_id
+		WHERE ng.genre_id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := n.db.Query(ctx, query, genreID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var novels []*Novel
+	for rows.Next() {
+		var novel Novel
+		err := rows.Scan(
+			&novel.ID,
+			&novel.Title,
+			&novel.Author,
+			&novel.Synopsis,
+			&novel.ImageURL,
+			&novel.CreatedAt,
+			&novel.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		novels = append(novels, &novel)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return novels, nil
+}
 
 func (n *NovelsStore) Update(ctx context.Context, novel *Novel) error {
 	query := `

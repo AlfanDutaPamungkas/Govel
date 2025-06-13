@@ -347,6 +347,31 @@ func (app *application) getAllNovelHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// getNovelsFromGenreID godoc
+//
+//	@Summary		Get novels from genre name
+//	@Description	Get novels from genre name
+//	@Tags			novels
+//	@Produce		json
+//	@Param			genreID	path		int						true	"Get from genre"
+//	@Success		200		{array}		store.Novel				"Get novels from genre successfully"
+//	@Failure		500		{object}	swagger.EnvelopeError	"Internal server error"
+//	@Router			/genres/{genreID}/novels [get]
+func (app *application) getNovelsFromGenreID(w http.ResponseWriter, r *http.Request) {
+	genre := getGenreFromCtx(r)
+
+	novels, err := app.store.Novels.GetNovelsFromGenreID(r.Context(), genre.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, novels); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (app *application) novelsContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

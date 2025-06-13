@@ -387,6 +387,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/genres/{genreID}/novels": {
+            "get": {
+                "description": "Get novels from genre name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "novels"
+                ],
+                "summary": "Get novels from genre name",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Get from genre",
+                        "name": "genreID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get novels from genre successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Novel"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.EnvelopeError"
+                        }
+                    }
+                }
+            }
+        },
         "/invoices": {
             "get": {
                 "security": [

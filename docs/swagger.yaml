@@ -526,6 +526,31 @@ paths:
       summary: update genre
       tags:
       - genres
+  /genres/{genreID}/novels:
+    get:
+      description: Get novels from genre name
+      parameters:
+      - description: Get from genre
+        in: path
+        name: genreID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get novels from genre successfully
+          schema:
+            items:
+              $ref: '#/definitions/store.Novel'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/swagger.EnvelopeError'
+      summary: Get novels from genre name
+      tags:
+      - novels
   /invoices:
     get:
       description: Get user's invoices
