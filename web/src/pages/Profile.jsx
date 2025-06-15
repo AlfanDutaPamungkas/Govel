@@ -14,7 +14,6 @@ const Profile = () => {
 
   return (
     <PageWrapper>
-      <Navbar />
       <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-white text-black">
         {/* Avatar + Edit */}
         <div className="relative mb-6">

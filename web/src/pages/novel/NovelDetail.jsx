@@ -20,7 +20,6 @@ const NovelDetail = () => {
 
   return (
     <PageWrapper>
-      <Navbar />
       <div className="pt-28 px-6 max-w-5xl mx-auto">
         {/* Container Gambar + Info */}
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-6 items-start">

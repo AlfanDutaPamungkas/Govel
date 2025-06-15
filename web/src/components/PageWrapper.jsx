@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import Footer from "./Footer";
+import Navbar from "./Navbar";
 
 const PageWrapper = ({ children }) => {
   return (
@@ -9,6 +10,7 @@ const PageWrapper = ({ children }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
+      <Navbar />
       {children}
       <Footer />
     </motion.div>

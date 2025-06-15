@@ -6,8 +6,6 @@ import PageWrapper from "../../components/PageWrapper";
 const ForgotPassword = () => {
   return (
     <PageWrapper>
-      <Navbar />
-
       <div className="flex flex-col items-center justify-center min-h-screen px-4">
         <h1 className="text-4xl md:text-5xl font-bold text-red-600 text-center mb-4">
           Forgot your password?

@@ -36,7 +36,6 @@ const ChapterDetail = () => {
 
   return (
     <PageWrapper>
-      <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-28">
         <Link
           to={`/novel/${novel.id}`}

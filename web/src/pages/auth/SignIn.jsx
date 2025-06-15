@@ -9,8 +9,6 @@ const SignIn = () => {
 
   return (
     <PageWrapper>
-      <Navbar />
-
       <div className="flex flex-col items-center justify-center min-h-screen px-4">
         <h1 className="text-4xl font-bold mb-8">Sign In</h1>
 

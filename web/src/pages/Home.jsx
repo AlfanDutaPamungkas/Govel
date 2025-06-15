@@ -5,7 +5,6 @@ import RecentlyUpdate from "../components/homepage/RecentlyUpdate";
 const HomePage = () => {
   return (
     <PageWrapper>
-      <Navbar />
       <RecentlyUpdate />
     </PageWrapper>
   );

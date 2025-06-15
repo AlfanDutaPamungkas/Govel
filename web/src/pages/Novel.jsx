@@ -79,7 +79,6 @@ const NovelPage = () => {
 
   return (
     <PageWrapper>
-      <Navbar />
       <div className="p-6 pt-28 max-w-4xl mx-auto">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
           <h1 className="text-2xl font-bold">All Novels</h1>

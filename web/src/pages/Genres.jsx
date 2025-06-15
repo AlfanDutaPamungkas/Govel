@@ -15,7 +15,6 @@ const Genres = () => {
 
   return (
     <PageWrapper>
-      <Navbar />
       <div className="pt-28 px-6 max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-6">Genres</h1>
         <p className="text-center mb-6 text-gray-600">
