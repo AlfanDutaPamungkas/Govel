@@ -1,0 +1,108 @@
+// data/novel.js
+export const dummyNovels = [
+  {
+    id: 1,
+    title: "The Lost Kingdom",
+    author: "A. Smith",
+    genre: "Fantasy",
+    coverImage: "/images/novel-1.jpeg", // lokal dari public/images/
+    chapters: [
+      {
+        number: 1,
+        title: "The Awakening",
+        content: "In the ancient ruins, a forgotten power stirs once more...",
+        updatedAt: "2025-06-14T10:00:00Z",
+      },
+      {
+        number: 2,
+        title: "The Secret Map",
+        content: "A mysterious scroll reveals a hidden path to the kingdom's heart.",
+        updatedAt: "2025-06-15T09:00:00Z",
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: "Love in Paris",
+    author: "Marie Claire",
+    genre: "Romance",
+    coverImage: "/images/novel-2.jpeg",
+    chapters: [
+      {
+        number: 1,
+        title: "The First Glance",
+        content: "Under the Eiffel Tower, two strangers lock eyes for the first time.",
+        updatedAt: "2025-06-13T08:30:00Z",
+      },
+      {
+        number: 2,
+        title: "The Rainy Café",
+        content: "A sudden downpour leads them to shelter — and conversation — in a cozy café.",
+        updatedAt: "2025-06-15T08:45:00Z",
+      },
+    ],
+  },
+  {
+    id: 3,
+    title: "Dragon's Rise",
+    author: "John Doe",
+    genre: "Fantasy",
+    coverImage: "/images/novel-3.jpeg",
+    chapters: [
+      {
+        number: 1,
+        title: "The Fire Within",
+        content: "A dragon egg hatches in the unlikeliest of hands...",
+        updatedAt: "2025-06-12T07:00:00Z",
+      },
+      {
+        number: 2,
+        title: "Flight of Flames",
+        content: "The young dragon takes to the skies — and burns its first enemy.",
+        updatedAt: "2025-06-15T07:30:00Z",
+      },
+    ],
+  },
+  {
+    id: 4,
+    title: "Midnight Shadows",
+    author: "C. Night",
+    genre: "Horror",
+    coverImage: "/images/novel-4.jpeg",
+    chapters: [
+      {
+        number: 1,
+        title: "Whispers in the Dark",
+        content: "At midnight, something speaks from the walls...",
+        updatedAt: "2025-06-14T23:00:00Z",
+      },
+      {
+        number: 2,
+        title: "The Locked Door",
+        content: "Nobody knows what's behind it — until it's opened.",
+        updatedAt: "2025-06-15T06:00:00Z",
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: "Winds of Change",
+    author: "Elena Rowe",
+    genre: "Drama",
+    coverImage: "/images/novel-5.jpeg",
+    chapters: [
+      {
+        number: 1,
+        title: "The Letter",
+        content: "An old letter arrives and changes everything.",
+        updatedAt: "2025-06-13T15:00:00Z",
+      },
+      {
+        number: 2,
+        title: "Breaking Point",
+        content: "Tensions rise as secrets come to light.",
+        updatedAt: "2025-06-14T17:00:00Z",
+      },
+    ],
+  },
+];

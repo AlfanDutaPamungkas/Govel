@@ -1,0 +1,99 @@
+import React, { useEffect, useRef } from "react";
+import { dummyNovels } from "../../data/novel";
+import { Link } from "react-router-dom";
+
+const RecentlyUpdate = () => {
+  const containerRef = useRef(null);
+
+  const sortedNovels = [...dummyNovels].sort((a, b) => {
+    const latestA = a.chapters[a.chapters.length - 1]?.updatedAt;
+    const latestB = b.chapters[b.chapters.length - 1]?.updatedAt;
+    return new Date(latestB) - new Date(latestA);
+  });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      if (e.shiftKey) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  return (
+    <div className="pt-24 px-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">Recently Updated Novels</h1>
+
+      <div
+        ref={containerRef}
+        className="flex gap-4 pb-4 overflow-x-auto scroll-smooth scroll-container"
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+      >
+        <style>
+          {`
+            .scroll-container::-webkit-scrollbar {
+              display: none;
+            }
+          `}
+        </style>
+
+        {sortedNovels.map((novel) => {
+          const latestChapter = novel.chapters[novel.chapters.length - 1];
+
+          return (
+            <Link
+              to={`/novel/${novel.id}`}
+              key={novel.id}
+              className="relative min-w-[250px] h-[360px] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition duration-300 cursor-pointer group"
+            >
+              <img
+                src={novel.coverImage}
+                alt={novel.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent p-4 flex flex-col justify-end">
+                <h2 className="text-white font-bold text-lg">{novel.title}</h2>
+                <p className="text-gray-300 text-sm">{novel.author}</p>
+                <p className="text-gray-400 text-xs italic mb-1">
+                  {novel.genre}
+                </p>
+                {latestChapter && (
+                  <>
+                    <p className="text-sm text-white">
+                      📖 {latestChapter.title}
+                    </p>
+                    <p className="text-xs text-gray-300">
+                      Updated:{" "}
+                      {new Date(latestChapter.updatedAt).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
+                    </p>
+                  </>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default RecentlyUpdate;
