@@ -9,6 +9,8 @@ const AddEditChapter = () => {
     const [novel, setNovel] = useState(null);
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [isPaid, setIsPaid] = useState(false);
+    const [price, setPrice] = useState("");
 
     const isEdit = !!number;
 
@@ -31,6 +33,8 @@ const AddEditChapter = () => {
             } else {
                 setTitle(existing.title);
                 setContent(existing.content);
+                setIsPaid(existing.isPaid || false);
+                setPrice(existing.price ? existing.price.toString() : "");
             }
         }
     }, [id, number, isEdit]);
@@ -42,9 +46,23 @@ const AddEditChapter = () => {
             return;
         }
 
+        if (isPaid && (!price || isNaN(price) || parseFloat(price) <= 0)) {
+            alert("Harga harus diisi dengan angka valid jika chapter berbayar.");
+            return;
+        }
+
+        const chapterData = {
+            title,
+            content,
+            isPaid,
+            price: isPaid ? parseFloat(price) : 0,
+        };
+
         if (isEdit) {
+            console.log("Update Chapter:", chapterData);
             alert(`(Dummy) Chapter ${number} berhasil diperbarui`);
         } else {
+            console.log("Tambah Chapter Baru:", chapterData);
             alert(`(Dummy) Chapter baru berhasil ditambahkan`);
         }
 
@@ -79,6 +97,32 @@ const AddEditChapter = () => {
                         className="w-full border rounded px-3 py-2"
                     />
                 </div>
+
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        id="isPaid"
+                        checked={isPaid}
+                        onChange={(e) => setIsPaid(e.target.checked)}
+                    />
+                    <label htmlFor="isPaid" className="font-medium">
+                        Chapter Berbayar
+                    </label>
+                </div>
+
+                {isPaid && (
+                    <div>
+                        <label className="font-medium">Harga Chapter (contoh: 5000)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            className="w-full border rounded px-3 py-2"
+                        />
+                    </div>
+                )}
 
                 <button
                     type="submit"

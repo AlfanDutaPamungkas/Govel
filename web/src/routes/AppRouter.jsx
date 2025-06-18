@@ -29,6 +29,7 @@ import Settings from "../pages/admin/Settings";
 import NovelDetails from "../pages/admin/NovelDetail";
 import Dashboard from "../pages/admin/Dashboard";
 import AdminLogin from "../pages/admin/AdminLogin";
+import GenreManager from "../pages/admin/GenreManager";
 
 
 
@@ -63,6 +64,7 @@ const AppRouter = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="novels" element={<NovelList />} />
+          <Route path="genres" element={<GenreManager />} />
           <Route path="add-novel" element={<AddEditNovel />} />
           <Route path="edit-novel/:id" element={<AddEditNovel />} />
 

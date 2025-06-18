@@ -45,6 +45,12 @@ const Sidebar = () => {
                         Tambah Novel
                     </NavLink>
 
+                    <NavLink to="/admin/genres" className={linkClass}>
+                        <Book size={18} />
+                        Kelola Genre
+                    </NavLink>
+
+
                     <NavLink to="/admin/settings" className={linkClass}>
                         <Settings size={18} />
                         Pengaturan

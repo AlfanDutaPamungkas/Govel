@@ -1,17 +1,26 @@
-// src/pages/admin/AddEditNovel.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { dummyNovels } from "../../data/novel"; // ganti nanti dengan fetch dari backend
+import Select from "react-select";
+import { dummyNovels } from "../../data/novel"; // Ganti nanti dengan fetch dari backend
+
+// Daftar genre yang tersedia
+const genreOptions = [
+    { value: "Fantasi", label: "Fantasi" },
+    { value: "Romantis", label: "Romantis" },
+    { value: "Horor", label: "Horor" },
+    { value: "Petualangan", label: "Petualangan" },
+    { value: "Aksi", label: "Aksi" },
+];
 
 const AddEditNovel = () => {
-    const { id } = useParams(); // jika ada id, maka ini mode edit
+    const { id } = useParams();
     const navigate = useNavigate();
     const isEdit = Boolean(id);
 
     const [form, setForm] = useState({
         title: "",
         author: "",
-        genre: "",
+        genre: [],
         coverImage: "",
     });
 
@@ -22,7 +31,9 @@ const AddEditNovel = () => {
                 setForm({
                     title: novel.title,
                     author: novel.author,
-                    genre: novel.genre,
+                    genre: Array.isArray(novel.genre)
+                        ? novel.genre.map((g) => ({ value: g, label: g }))
+                        : [{ value: novel.genre, label: novel.genre }],
                     coverImage: novel.coverImage,
                 });
             } else {
@@ -33,23 +44,28 @@ const AddEditNovel = () => {
     }, [id]);
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
+
+    const handleGenreChange = (selectedOptions) => {
+        setForm({ ...form, genre: selectedOptions });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!form.title || !form.author || !form.genre || !form.coverImage) {
+        if (!form.title || !form.author || form.genre.length === 0 || !form.coverImage) {
             alert("Semua field harus diisi.");
             return;
         }
 
+        const genreValues = form.genre.map((g) => g.value);
+
         if (isEdit) {
-            // update novel di database
-            console.log("Update novel:", form);
+            console.log("Update novel:", { ...form, genre: genreValues });
         } else {
-            // tambah novel baru
-            console.log("Tambah novel baru:", form);
+            console.log("Tambah novel baru:", { ...form, genre: genreValues });
         }
 
         navigate("/admin/novels");
@@ -83,12 +99,15 @@ const AddEditNovel = () => {
                 </div>
                 <div>
                     <label className="font-medium block mb-1">Genre</label>
-                    <input
-                        type="text"
+                    <Select
+                        isMulti
                         name="genre"
                         value={form.genre}
-                        onChange={handleChange}
-                        className="w-full border rounded px-3 py-2"
+                        onChange={handleGenreChange}
+                        options={genreOptions}
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                        placeholder="Pilih genre..."
                     />
                 </div>
                 <div>
