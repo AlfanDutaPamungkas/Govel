@@ -54,8 +54,9 @@ const RecentlyUpdate = () => {
             <Link
               to={`/novel/${novel.id}`}
               key={novel.id}
-              className="relative min-w-[250px] h-[360px] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition duration-300 cursor-pointer group"
+              className="relative min-w-[180px] sm:min-w-[200px] md:min-w-[250px] h-[280px] sm:h-[320px] md:h-[360px] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition duration-300 cursor-pointer group"
             >
+
               <img
                 src={novel.coverImage}
                 alt={novel.title}
