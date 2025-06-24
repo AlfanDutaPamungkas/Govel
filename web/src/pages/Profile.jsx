@@ -2,11 +2,26 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Pencil } from "lucide-react";
 import PageWrapper from "../components/PageWrapper";
-import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logoutAction } from "../redux/slice/authSlice";
+import { useQuery } from "@tanstack/react-query";
+import { profileAPI } from "../services/users/userServices";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const {data} = useQuery({
+    queryFn: profileAPI,
+    queryKey: ["user-profile"]
+  });
+
+  const logoutHandler = () => {
+    dispatch(logoutAction());
+    localStorage.removeItem("userInfo");
+    navigate("/");
+  };
 
   const handleEditClick = () => {
     navigate("/change-profile-picture");
@@ -18,7 +33,7 @@ const Profile = () => {
         {/* Avatar + Edit */}
         <div className="relative mb-6">
           <img
-            src="https://randomuser.me/api/portraits/men/1.jpg"
+            src={data?.data?.image_url}
             alt="User Avatar"
             className="w-28 h-28 rounded-full object-cover border-2 border-black shadow"
           />
@@ -31,15 +46,15 @@ const Profile = () => {
         </div>
 
         {/* User Info */}
-        <h1 className="text-xl font-bold">Azmi Nailal hadi</h1>
+        <h1 className="text-xl font-bold">{data?.data?.username}</h1>
         <p className="text-sm text-gray-600 mb-3">
-          azminailalhadi.py@gmail.com
+          {data?.data?.email}
         </p>
 
         {/* Balance */}
         <div className="flex items-center justify-center bg-black text-white rounded-full px-5 py-1 text-sm font-medium mb-6 shadow">
           <span>$</span>
-          <span className="ml-2">100</span>
+          <span className="ml-2">{data?.data?.coin}</span>
         </div>
 
         {/* Action Buttons */}
@@ -62,7 +77,7 @@ const Profile = () => {
           >
             Change Password
           </Link>
-          <button className="border border-black text-black py-2 rounded text-center hover:bg-black hover:text-white transition">
+          <button onClick={logoutHandler} className="border border-black text-black py-2 rounded text-center hover:bg-black hover:text-white transition">
             Log Out
           </button>
         </div>

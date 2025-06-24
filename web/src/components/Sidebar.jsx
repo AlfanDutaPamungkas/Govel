@@ -6,15 +6,19 @@ import {
     Plus,
     Settings,
     LogOut,
+    Receipt
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { logoutAction } from "../redux/slice/authSlice";
 
 const Sidebar = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const handleLogout = () => {
-        // Simulasikan logout, misal clear token atau session (ganti sesuai logic-mu)
-        localStorage.removeItem("admin_token");
-        navigate("/admin/login");
+        dispatch(logoutAction());
+        localStorage.removeItem("userInfo");
+        navigate("/");
     };
 
     const linkClass = ({ isActive }) =>
@@ -50,6 +54,10 @@ const Sidebar = () => {
                         Kelola Genre
                     </NavLink>
 
+                    <NavLink to="/admin/transactions" className={linkClass}>
+                        <Receipt size={18} />
+                        Transaksi User
+                    </NavLink>
 
                     <NavLink to="/admin/settings" className={linkClass}>
                         <Settings size={18} />

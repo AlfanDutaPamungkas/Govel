@@ -172,8 +172,11 @@ func (i *InvoicesStore) GetByUserID(ctx context.Context, userID int64) ([]*Invoi
 
 func (i *InvoicesStore) GetAll(ctx context.Context) ([]*Invoice, error) {
 	query := `
-		SELECT id, user_id, external_id, invoice_id, status, amount, plan, created_at
-		FROM invoices
+		SELECT 
+			i.id, i.user_id, i.external_id, i.invoice_id, i.status, i.amount, i.plan, i.created_at,
+			u.username
+		FROM invoices as i
+		left join users as u on i.user_id = u.id;
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -202,6 +205,7 @@ func (i *InvoicesStore) GetAll(ctx context.Context) ([]*Invoice, error) {
 			&invoice.Amount,
 			&invoice.Plan,
 			&invoice.CreatedAt,
+			&invoice.User.Username,
 		)
 
 		if err != nil {

@@ -1,33 +1,28 @@
 import { BookOpen, Search, User, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { dummyNovels } from "../data/novel"; // sesuaikan path jika berbeda
+import { useQuery } from "@tanstack/react-query";
+import { listNovelsAPI } from "../../services/novels/novelServices";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const navigate = useNavigate();
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
+  const { data: searchResult } = useQuery({
+    queryKey: ["list-novels", "search", searchTerm],
+    queryFn: listNovelsAPI,
+    enabled: searchTerm.trim().length > 0,
+  });
 
-    if (value.trim() !== "") {
-      const filtered = dummyNovels.filter((novel) =>
-        novel.title.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered);
-    } else {
-      setSuggestions([]);
-    }
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleSearchEnter = (e) => {
     if (e.key === "Enter" && searchTerm.trim() !== "") {
       navigate(`/novel?q=${encodeURIComponent(searchTerm.trim())}`);
       setSearchTerm("");
-      setSuggestions([]);
       setIsOpen(false);
     }
   };
@@ -35,35 +30,22 @@ const Navbar = () => {
   const handleSuggestionClick = (novel) => {
     navigate(`/novel/${novel.id}`);
     setSearchTerm("");
-    setSuggestions([]);
     setIsOpen(false);
   };
 
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-6xl bg-white border rounded-2xl shadow-md px-4 py-4 md:py-2">
-      {/* Top Navbar */}
       <div className="flex items-center justify-between">
-        {/* Left: Logo + Menu */}
+        {/* Logo + Links */}
         <div className="flex items-center gap-6">
           <Link to="/">
             <BookOpen className="w-6 h-6" />
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/novel" className="text-sm font-medium hover:text-black">
-              Novel
-            </Link>
-            <Link to="/genres" className="text-sm font-medium hover:text-black">
-              Genres
-            </Link>
-            <Link to="/top-up" className="text-sm font-medium hover:text-black">
-              Top-up
-            </Link>
-            <Link
-              to="/bookmarks"
-              className="text-sm font-medium hover:text-black"
-            >
-              Bookmarks
-            </Link>
+            <Link to="/novel" className="text-sm font-medium hover:text-black">Novel</Link>
+            <Link to="/genres" className="text-sm font-medium hover:text-black">Genres</Link>
+            <Link to="/top-up" className="text-sm font-medium hover:text-black">Top-up</Link>
+            <Link to="/bookmarks" className="text-sm font-medium hover:text-black">Bookmarks</Link>
           </div>
         </div>
 
@@ -80,9 +62,9 @@ const Navbar = () => {
               className="bg-black text-white placeholder-white text-sm px-2 py-1 focus:outline-none w-24 md:w-36"
             />
             <Search className="text-white w-4 h-4 ml-2" />
-            {suggestions.length > 0 && (
+            {searchResult?.data?.length > 0 && (
               <ul className="absolute top-full left-0 mt-1 bg-white w-full rounded-md shadow z-10 text-black">
-                {suggestions.map((novel) => (
+                {searchResult.data.map((novel) => (
                   <li
                     key={novel.id}
                     onClick={() => handleSuggestionClick(novel)}
@@ -113,46 +95,14 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Dropdown */}
-      <div
-        className={`flex flex-col gap-3 transition-all duration-300 ease-in-out overflow-hidden md:hidden ${
-          isOpen ? "max-h-[500px] mt-4 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <Link
-          to="/"
-          onClick={() => setIsOpen(false)}
-          className="text-sm font-medium hover:text-black"
-        >
-          Home
-        </Link>
-        <Link
-          to="/genres"
-          onClick={() => setIsOpen(false)}
-          className="text-sm font-medium hover:text-black"
-        >
-          Genres
-        </Link>
-        <Link
-          to="/top-up"
-          onClick={() => setIsOpen(false)}
-          className="text-sm font-medium hover:text-black"
-        >
-          Top-up
-        </Link>
-        <Link
-          to="/bookmarks"
-          onClick={() => setIsOpen(false)}
-          className="text-sm font-medium hover:text-black"
-        >
-          Bookmarks
-        </Link>
-        <Link
-          to="/profile"
-          onClick={() => setIsOpen(false)}
-          className="text-sm font-medium hover:text-black"
-        >
-          Profile
-        </Link>
+      <div className={`flex flex-col gap-3 transition-all duration-300 ease-in-out overflow-hidden md:hidden ${
+        isOpen ? "max-h-[500px] mt-4 opacity-100" : "max-h-0 opacity-0"
+      }`}>
+        <Link to="/" onClick={() => setIsOpen(false)}>Home</Link>
+        <Link to="/genres" onClick={() => setIsOpen(false)}>Genres</Link>
+        <Link to="/top-up" onClick={() => setIsOpen(false)}>Top-up</Link>
+        <Link to="/bookmarks" onClick={() => setIsOpen(false)}>Bookmarks</Link>
+        <Link to="/profile" onClick={() => setIsOpen(false)}>Profile</Link>
 
         {/* Search - Mobile */}
         <div className="relative flex items-center bg-black rounded-full px-3 py-1">
@@ -165,9 +115,9 @@ const Navbar = () => {
             className="bg-black text-white placeholder-white text-sm px-2 py-1 focus:outline-none w-full"
           />
           <Search className="text-white w-4 h-4 ml-2" />
-          {suggestions.length > 0 && (
+          {searchResult?.data?.length > 0 && (
             <ul className="absolute top-full mt-1 left-0 bg-white w-full rounded shadow z-10 text-black">
-              {suggestions.map((novel) => (
+              {searchResult.data.map((novel) => (
                 <li
                   key={novel.id}
                   onClick={() => handleSuggestionClick(novel)}

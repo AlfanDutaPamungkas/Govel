@@ -1,35 +1,14 @@
 import React from "react";
 import PageWrapper from "../../components/PageWrapper";
-import Navbar from "../../components/Navbar";
-
-const transactions = [
-  {
-    id: "1234",
-    date: "02/05/2025",
-    status: "PENDING",
-    url: "#",
-    amount: "Rp.65.000",
-    plan: "Scroll",
-  },
-  {
-    id: "5678",
-    date: "30/04/2025",
-    status: "PAID",
-    url: "#",
-    amount: "Rp.15.000",
-    plan: "Lite",
-  },
-  {
-    id: "8765",
-    date: "28/04/2025",
-    status: "PAID",
-    url: "#",
-    amount: "Rp.100.000",
-    plan: "Volume",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { listTransactionsAPI } from "../../services/invoices/invoiceServices";
 
 const TransactionHistory = () => {
+  const {data: transactions} = useQuery({
+    queryKey: ["list-transactions"],
+    queryFn: listTransactionsAPI,
+  });
+  
   return (
     <PageWrapper>
       <div className="pt-28 px-4 max-w-5xl mx-auto">
@@ -50,14 +29,14 @@ const TransactionHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((tx, index) => (
+              {transactions?.data?.map((tx, index) => (
                 <tr
                   key={tx.id}
                   className="hover:bg-gray-50 border-t border-gray-200 transition"
                 >
                   <td className="py-3 px-4">{index + 1}</td>
-                  <td className="py-3 px-4">{tx.id}</td>
-                  <td className="py-3 px-4">{tx.date}</td>
+                  <td className="py-3 px-4">{tx.invoice_id}</td>
+                  <td className="py-3 px-4">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="py-3 px-4">
                     <span
                       className={`font-medium ${
@@ -71,7 +50,7 @@ const TransactionHistory = () => {
                   </td>
                   <td className="py-3 px-4">
                     <a
-                      href={tx.url}
+                      href={tx.invoice_url}
                       className="text-blue-500 hover:underline"
                       target="_blank"
                       rel="noreferrer"

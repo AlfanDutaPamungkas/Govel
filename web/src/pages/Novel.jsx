@@ -1,14 +1,47 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
-import Navbar from "../components/Navbar";
-import { dummyNovels } from "../data/novel"; // Ganti nanti dengan data dari BE
+import { listGenresAPI } from "../services/genres/genreServices";
+import { listNovelsAPI, listNovelsFromGenreAPI } from "../services/novels/novelServices";
+import { useQuery } from "@tanstack/react-query";
 
 const NovelPage = () => {
+  const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q");
+  const genreQuery = searchParams.get("genre");
+
   const [selectedGenre, setSelectedGenre] = useState("All");
 
-  const genres = ["All", ...new Set(dummyNovels.map((n) => n.genre))];
-  const novelsToDisplay = dummyNovels; // sementara static, nanti dari BE
+  useEffect(() => {
+    if (genreQuery) setSelectedGenre(genreQuery);
+  }, [genreQuery]);
+
+  const { data: genres } = useQuery({
+    queryKey: ["list-genres"],
+    queryFn: listGenresAPI,
+  });
+
+  const { data: novels } = useQuery({
+    queryKey: genreQuery
+      ? ["novels-by-genre", genreQuery]
+      : searchQuery
+      ? ["list-novels", "search", searchQuery]
+      : ["list-novels"],
+    queryFn: genreQuery ? listNovelsFromGenreAPI : listNovelsAPI,
+  });
+
+  const handleGenreChange = (e) => {
+    const genreID = e.target.value;
+    setSelectedGenre(genreID);
+
+    if (genreID === "All") {
+      navigate("/novel"); // Hapus query kalau All
+    } else {
+      navigate(`/novel?genre=${genreID}`); // Navigasi dengan query genre
+    }
+  };
 
   return (
     <PageWrapper>
@@ -20,12 +53,13 @@ const NovelPage = () => {
           <div>
             <select
               value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
+              onChange={handleGenreChange}
               className="border border-gray-300 bg-white rounded-lg px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {genres.map((genre) => (
-                <option key={genre} value={genre}>
-                  {genre}
+              <option value="All">All</option>
+              {genres?.data.map((genre) => (
+                <option key={genre?.id} value={genre?.id}>
+                  {genre?.name.charAt(0).toUpperCase() + genre?.name.slice(1)}
                 </option>
               ))}
             </select>
@@ -33,25 +67,22 @@ const NovelPage = () => {
         </div>
 
         {/* Grid Novels */}
-        {novelsToDisplay.length > 0 ? (
+        {novels?.data?.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {novelsToDisplay.map((novel) => (
+            {novels.data.map((novel) => (
               <Link
                 to={`/novel/${novel.id}`}
                 key={novel.id}
                 className="relative aspect-[2/3] rounded-lg overflow-hidden shadow hover:shadow-lg transition duration-300 group"
               >
                 <img
-                  src={novel.coverImage}
+                  src={novel.image_url}
                   alt={novel.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent p-4 flex flex-col justify-end">
-                  <h2 className="text-white font-semibold text-lg">
-                    {novel.title}
-                  </h2>
+                  <h2 className="text-white font-semibold text-lg">{novel.title}</h2>
                   <p className="text-sm text-gray-300">{novel.author}</p>
-                  <p className="text-xs text-gray-400 italic">{novel.genre}</p>
                 </div>
               </Link>
             ))}

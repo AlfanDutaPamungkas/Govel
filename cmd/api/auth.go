@@ -302,3 +302,10 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
+func (app *application) checkAdmin(w http.ResponseWriter, r *http.Request){
+	if err := app.jsonResponse(w, http.StatusOK, "ok"); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}

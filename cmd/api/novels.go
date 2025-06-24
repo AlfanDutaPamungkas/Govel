@@ -85,7 +85,12 @@ func (app *application) createNovelHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := app.store.Novels.CreateNovelAndInsertGenres(ctx, novel, payload.GenreIDs); err != nil {
-		app.internalServerError(w, r, err)
+		switch err {
+		case store.ErrDuplicateNovelTitle:
+			app.badRequestResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 
@@ -375,6 +380,7 @@ func (app *application) getNovelsFromGenreID(w http.ResponseWriter, r *http.Requ
 func (app *application) novelsContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		user := getUserFromCtx(r)
 		idParam := chi.URLParam(r, "novelID")
 		id, err := strconv.ParseInt(idParam, 10, 64)
 		if err != nil {
@@ -382,7 +388,7 @@ func (app *application) novelsContextMiddleware(next http.Handler) http.Handler 
 			return
 		}
 
-		novel, err := app.store.Novels.GetByID(ctx, id)
+		novel, err := app.store.Novels.GetByID(ctx, id, user.ID)
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrNotFound):

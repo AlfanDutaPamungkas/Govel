@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/AlfanDutaPamungkas/Govel/internal/helper"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -15,7 +17,6 @@ type chapterKey string
 const chapterCtx chapterKey = "chapter"
 
 type CreateChapterPayload struct {
-	Slug          string  `json:"slug" validate:"required,max=100"`
 	Title         string  `json:"title" validate:"required"`
 	Content       string  `json:"content" validate:"required"`
 	ChapterNumber float64 `json:"chapter_number" validate:"required"`
@@ -64,9 +65,11 @@ func (app *application) createChapterHandler(w http.ResponseWriter, r *http.Requ
 		price = *payload.Price
 	}
 
+	chapterSlug := helper.GenerateChapterSlug(novel.Title, payload.ChapterNumber)
+
 	chapter := &store.Chapter{
 		NovelID:       novel.ID,
-		Slug:          payload.Slug,
+		Slug:          chapterSlug,
 		Title:         payload.Title,
 		Content:       payload.Content,
 		ChapterNumber: payload.ChapterNumber,
@@ -77,7 +80,7 @@ func (app *application) createChapterHandler(w http.ResponseWriter, r *http.Requ
 	if err := app.store.Chapters.Create(r.Context(), chapter); err != nil {
 		switch {
 		case errors.Is(err, store.ErrDuplicateSlug):
-			app.badRequestResponse(w, r, err)
+			app.badRequestResponse(w, r, fmt.Errorf("slug chapter sudah digunakan: %s", chapterSlug))
 		default:
 			app.internalServerError(w, r, err)
 		}
@@ -101,6 +104,7 @@ func (app *application) createChapterHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
 
 type UpdateChapterPayload struct {
 	Title         string   `json:"title"`

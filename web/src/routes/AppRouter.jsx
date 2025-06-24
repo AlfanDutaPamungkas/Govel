@@ -23,15 +23,19 @@ import SignUp from "../pages/auth/SignUp";
 // Admin pages
 import AdminLayout from "../pages/admin/AdminLayout";
 import NovelList from "../pages/admin/NovelList";
-import AddEditNovel from "../pages/admin/AddEditNovel";
 import AddEditChapter from "../pages/admin/AddEditChapter"; // Tambahan
 import Settings from "../pages/admin/Settings";
 import NovelDetails from "../pages/admin/NovelDetail";
 import Dashboard from "../pages/admin/Dashboard";
-import AdminLogin from "../pages/admin/AdminLogin";
 import GenreManager from "../pages/admin/GenreManager";
-
-
+import AuthRoute from "../components/auth/AuthRoute";
+import ConfirmationPage from "../pages/auth/ConfirmationPage";
+import ResetPassword from "../pages/auth/ResetPassword";
+import AdminRoute from "../components/auth/AdminRoute";
+import AddNovel from "../pages/admin/AddNovel";
+import EditNovel from "../pages/admin/EditNovel";
+import ChangeNovelImage from "../pages/admin/ChangeNovelImage";
+import TransactionUser from "../pages/admin/TransactionUser";
 
 const AppRouter = () => {
   const location = useLocation();
@@ -42,35 +46,108 @@ const AppRouter = () => {
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/genres" element={<Genres />} />
-        <Route path="/top-up" element={<TopUp />} />
-        <Route path="/bookmarks" element={<Bookmark />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/transaction-history" element={<TransactionHistory />} />
-        <Route path="/change-password" element={<ChangePassword />} />
-        <Route path="/update-profile" element={<UpdateProfile />} />
-        <Route path="/change-profile-picture" element={<ChangeProfilePicture />} />
+        <Route 
+          path="/top-up" 
+          element={
+            <AuthRoute>
+              <TopUp />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/bookmarks" 
+          element={
+            <AuthRoute>
+              <Bookmark />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <AuthRoute>
+              <Profile />
+            </AuthRoute>
+          } 
+        />
+        <Route
+          path="/transaction-history" 
+          element={
+            <AuthRoute>
+              <TransactionHistory />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/change-password" 
+          element={
+            <AuthRoute>
+              <ChangePassword />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/update-profile" 
+          element={
+            <AuthRoute>
+              <UpdateProfile />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/change-profile-picture" 
+          element={
+            <AuthRoute>
+              <ChangeProfilePicture />
+            </AuthRoute>
+          } 
+        />
+
         <Route path="/novel" element={<Novel />} />
-        <Route path="/novel/:id" element={<NovelDetail />} />
-        <Route path="/novel/:novelId/chapter/:chapterNumber" element={<ChapterDetail />} />
+        <Route 
+          path="/novel/:novelID" 
+          element={
+            <AuthRoute>
+              <NovelDetail />
+            </AuthRoute>
+          } 
+        />
+        <Route 
+          path="/novel/:novelID/chapter/:slug" 
+          element={
+            <AuthRoute>
+              <ChapterDetail />
+            </AuthRoute>
+          } 
+        />
 
         {/* Authentication */}
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/confirm/:token" element={<ConfirmationPage/>}/>
+        <Route path="/reset/:token" element={<ResetPassword/>}/>
 
         {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route 
+          path="/admin" 
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="novels" element={<NovelList />} />
           <Route path="genres" element={<GenreManager />} />
-          <Route path="add-novel" element={<AddEditNovel />} />
-          <Route path="edit-novel/:id" element={<AddEditNovel />} />
+          <Route path="add-novel" element={<AddNovel />} />
+          <Route path="edit-novel/:novelID" element={<EditNovel />} />
+          <Route path="edit-novel/:novelID/image" element={<ChangeNovelImage />} />
 
-          <Route path="novels/:id" element={<NovelDetails />} />
-          <Route path="novels/:id/add-chapter" element={<AddEditChapter />} />
-          <Route path="novels/:id/edit-chapter/:number" element={<AddEditChapter />} />
+          <Route path="novels/:novelID" element={<NovelDetails />} />
+          <Route path="novels/:novelID/add-chapter" element={<AddEditChapter />} />
+          <Route path="novels/:novelID/edit-chapter/:slug" element={<AddEditChapter />} />
+          <Route path="transactions" element={<TransactionUser/>}/>
           <Route path="settings" element={<Settings />} />
         </Route>
 

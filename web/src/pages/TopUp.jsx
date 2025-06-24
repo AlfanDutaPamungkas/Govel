@@ -1,48 +1,61 @@
 import React, { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { Loader2 } from "lucide-react"; // Gunakan lucide-react atau ganti dengan spinner lainnya
+import { useMutation } from "@tanstack/react-query";
+import { createInvoiceAPI } from "../services/invoices/invoiceServices";
 
 const topupOptions = [
   {
     id: "lite",
     name: "Topup Lite",
-    coins: 100,
-    price: "Rp 10.000",
+    coins: 120,
+    price: "Rp 15.000",
     description: "Cocok untuk coba-coba dan pengguna baru.",
   },
   {
     id: "scroll",
     name: "Topup Scroll",
-    coins: 300,
-    price: "Rp 25.000",
+    coins: 700,
+    price: "Rp 65.000",
     description: "Paket menengah untuk penggunaan rutin.",
   },
   {
     id: "volume",
     name: "Topup Volume",
-    coins: 1000,
-    price: "Rp 70.000",
+    coins: 1300,
+    price: "Rp 100.000",
     description: "Paket besar, hemat dan praktis!",
     highlight: true,
   },
 ];
 
-const paymentMethods = [
-  "QRIS (All Bank)",
-  "Transfer Bank (BCA, Mandiri, BNI)",
-  "E-Wallet (Gopay, OVO, Dana)",
-];
-
 const TopUp = () => {
   const [selectedTopup, setSelectedTopup] = useState(null);
-  const [selectedMethod, setSelectedMethod] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+
+  const { mutate: createInvoice, isPending } = useMutation({
+    mutationFn: createInvoiceAPI,
+    onSuccess: (data) => {
+      const redirectUrl = data?.data?.invoice_url;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        setIsLoading(false);
+        alert("Gagal mendapatkan URL pembayaran.");
+      }
+    },
+    onError: () => {
+      setIsLoading(false);
+      setShowErrorToast(true);
+      setTimeout(() => setShowErrorToast(false), 3000);
+    },
+  });
+
 
   const openModal = (option) => {
     setSelectedTopup(option);
-    setSelectedMethod("");
     setShowModal(true);
   };
 
@@ -52,13 +65,9 @@ const TopUp = () => {
   };
 
   const handleConfirmPayment = () => {
+  if (!selectedTopup) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowModal(false);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    }, 2000);
+    createInvoice({ queryKey: ["invoice", selectedTopup.id] });
   };
 
   return (
@@ -123,31 +132,10 @@ const TopUp = () => {
               🪙 {selectedTopup.coins} | {selectedTopup.price}
             </p>
 
-            <div className="mb-4">
-              <label className="block mb-2 font-semibold text-sm">
-                Pilih Metode Pembayaran:
-              </label>
-              <select
-                value={selectedMethod}
-                onChange={(e) => setSelectedMethod(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-              >
-                <option value="">-- Pilih --</option>
-                {paymentMethods.map((method, i) => (
-                  <option key={i} value={method}>
-                    {method}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <button
-              disabled={!selectedMethod || isLoading}
               onClick={handleConfirmPayment}
-              className={`w-full py-2 rounded font-semibold flex items-center justify-center ${selectedMethod
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                }`}
+              className="w-full py-2 rounded font-semibold flex items-center justify-center bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+              disabled={isLoading}
             >
               {isLoading ? (
                 <>
@@ -162,10 +150,10 @@ const TopUp = () => {
         </div>
       )}
 
-      {/* Toast */}
-      {showToast && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-          🎉 Pembayaran berhasil! Coin akan segera ditambahkan.
+      {/* Toast Error */}
+      {showErrorToast && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+          ❌ Gagal memproses pembayaran. Silakan coba lagi.
         </div>
       )}
     </PageWrapper>

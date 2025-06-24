@@ -15,6 +15,7 @@ type Bookmark struct {
 	ID        int64     `json:"id"`
 	UserID    int64     `json:"user_id"`
 	NovelID   int64     `json:"novel_id"`
+	Novel     *Novel     `json:"novel"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -40,10 +41,10 @@ func (b *BookmarkStore) Create(ctx context.Context, bookmark *Bookmark) error {
 
 	if err != nil {
 		switch {
-			case err.Error() == `ERROR: duplicate key value violates unique constraint "bookmarks_user_id_novel_id_key" (SQLSTATE 23505)`:
-				return ErrBookmarkExists
-			default:
-				return err
+		case err.Error() == `ERROR: duplicate key value violates unique constraint "bookmarks_user_id_novel_id_key" (SQLSTATE 23505)`:
+			return ErrBookmarkExists
+		default:
+			return err
 		}
 	}
 
@@ -52,9 +53,12 @@ func (b *BookmarkStore) Create(ctx context.Context, bookmark *Bookmark) error {
 
 func (b *BookmarkStore) GetByUserID(ctx context.Context, userID int64) ([]*Bookmark, error) {
 	query := `
-		SELECT id, user_id, novel_id, created_at
-		FROM bookmarks
-		WHERE user_id = $1
+		SELECT 
+			b.id, b.user_id, b.novel_id, b.created_at,
+			n.id, n.title, n.image_url, n.author
+		FROM bookmarks b
+		JOIN novels n ON n.id = b.novel_id
+		WHERE b.user_id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -75,11 +79,17 @@ func (b *BookmarkStore) GetByUserID(ctx context.Context, userID int64) ([]*Bookm
 	var bookmarks []*Bookmark
 	for rows.Next() {
 		var bookmark Bookmark
+		bookmark.Novel = &Novel{}
+		
 		err := rows.Scan(
 			&bookmark.ID,
 			&bookmark.UserID,
 			&bookmark.NovelID,
 			&bookmark.CreatedAt,
+			&bookmark.Novel.ID,
+			&bookmark.Novel.Title,
+			&bookmark.Novel.ImageURL,
+			&bookmark.Novel.Author,
 		)
 
 		if err != nil {

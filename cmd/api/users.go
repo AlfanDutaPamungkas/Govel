@@ -174,7 +174,8 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 type ChangePasswordPayload struct {
-	Password string `json:"password" validate:"required,min=3,max=72"`
+	OldPassword string `json:"old_password" validate:"required,min=8,max=72"`
+	NewPassword string `json:"new_password" validate:"required,min=8,max=72"`
 }
 
 //	changePasswordHandler godoc
@@ -205,7 +206,17 @@ func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := user.Password.Set(payload.Password); err != nil {
+	if !user.Password.Verify(payload.OldPassword) {
+		app.badRequestResponse(w, r, errors.New("old password is incorrect"))
+		return
+	}
+
+	if user.Password.Verify(payload.NewPassword) {
+		app.badRequestResponse(w, r, errors.New("new password is the same as old password)"))
+		return
+	}
+
+	if err := user.Password.Set(payload.NewPassword); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

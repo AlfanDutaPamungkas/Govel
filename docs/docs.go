@@ -1887,13 +1887,19 @@ const docTemplate = `{
         "main.ChangePasswordPayload": {
             "type": "object",
             "required": [
-                "password"
+                "new_password",
+                "old_password"
             ],
             "properties": {
-                "password": {
+                "new_password": {
                     "type": "string",
                     "maxLength": 72,
-                    "minLength": 3
+                    "minLength": 8
+                },
+                "old_password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8
                 }
             }
         },

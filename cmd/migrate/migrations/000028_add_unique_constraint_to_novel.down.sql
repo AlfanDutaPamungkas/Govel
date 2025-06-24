@@ -1,0 +1,2 @@
+ALTER TABLE novels
+DROP CONSTRAINT IF EXISTS unique_title;

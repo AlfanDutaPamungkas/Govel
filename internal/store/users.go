@@ -172,9 +172,9 @@ func (s *UsersStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 func (s *UsersStore) Update(ctx context.Context, user *User) error {
 	query := `
 		update users
-		SET username = $1, email = $2, token_version = $3, password = $4, updated_at = $5
-		WHERE id = $6
-		RETURNING id , username, email, token_version
+		SET username = $1, email = $2, token_version = $3, password = $4, image_url = $5, updated_at = $6
+		WHERE id = $7
+		RETURNING id , username, email, image_url, token_version
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -187,9 +187,10 @@ func (s *UsersStore) Update(ctx context.Context, user *User) error {
 		user.Email,
 		user.TokenVersion,
 		user.Password.hash,
+		user.ImageURL,
 		user.UpdatedAt,
 		user.ID,
-	).Scan(&user.ID, &user.Username, &user.Email, &user.TokenVersion)
+	).Scan(&user.ID, &user.Username, &user.Email, &user.ImageURL, &user.TokenVersion)
 
 	if err != nil {
 		switch {

@@ -1,9 +1,35 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../../components/Navbar";
 import PageWrapper from "../../components/PageWrapper";
+import { forgotPasswordAPI } from "../../services/users/userServices";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useMutation } from "@tanstack/react-query";
+import AlertMessage from "../../components/alert/AlertMessage"
+
+// validation
+const validationSchema = Yup.object({
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required")
+});
 
 const ForgotPassword = () => {
+  const {mutate, isPending, isError, error, isSuccess} = useMutation({
+    mutationFn: forgotPasswordAPI,
+    mutationKey: ["Forgot-password"]
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      email:"",
+    },
+    validationSchema,
+    onSubmit: values => {
+      mutate(values);
+    }
+  });
+
   return (
     <PageWrapper>
       <div className="flex flex-col items-center justify-center min-h-screen px-4">
@@ -14,14 +40,22 @@ const ForgotPassword = () => {
           Enter your email address for a link to reset your password
         </p>
 
-        <form className="w-full max-w-sm flex flex-col gap-4">
+        <form onSubmit={formik.handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
+          {isPending && <AlertMessage type="loading" message="please wait..." />}
+          {isError && <AlertMessage type="error" message={error.response.data.error} />}
+          {isSuccess && <AlertMessage type="success" message="Please check your email to reset your password" />}
+
           {/* Email input */}
           <input
+            id="email"
             type="email"
+            {...formik.getFieldProps("email")}
             className="w-full border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
             placeholder="Enter your email here..."
           />
-
+          {formik.touched.email && formik.errors.email && (
+              <span className="text-xs text-red-500">{formik.errors.email}</span>
+          )}
           {/* Send button */}
           <button
             type="submit"

@@ -1,125 +1,187 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { dummyNovels } from "../../data/novel";
+import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "../../components/PageWrapper";
+import { detailChapterAPI, unlockChapterAPI } from "../../services/chapters/chapterServices";
+import AlertMessage from "../../components/alert/AlertMessage";
 
 const ChapterDetail = () => {
-  const { novelId, chapterNumber } = useParams();
-  const navigate = useNavigate();
-
+  const { novelID, slug } = useParams();
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
-  const [nextChapter, setNextChapter] = useState(null);
+  const [alert, setAlert] = useState({ type: "", message: "" });
 
-  const novel = dummyNovels.find((n) => n.id === parseInt(novelId));
-  if (!novel) return <p className="mt-32 text-center">Novel not found.</p>;
+  const {
+    data: chapter,
+    error,
+    isError,
+    isLoading,
+  } = useQuery({
+    queryKey: ["detail-chapter", novelID, slug],
+    queryFn: detailChapterAPI,
+    suspense: false,
+    retry: false,
+  });
 
-  const chapterIndex = novel.chapters.findIndex(
-    (c) => c.number === parseInt(chapterNumber)
-  );
+  const { mutate: unlockChapter, isPending: isUnlocking } = useMutation({
+    mutationFn: unlockChapterAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["detail-chapter", novelID, slug] });
+      setShowModal(false);
+      setAlert({ type: "success", message: "Chapter berhasil dibuka!" });
+    },
+    onError: (error) => {
+      const status = error?.response?.status;
+      if (status === 409) {
+        setAlert({ type: "error", message: "Chapter sudah dibeli sebelumnya." });
+      } else if (status === 402) {
+        setAlert({ type: "error", message: "Koin kamu tidak cukup." });
+      } else {
+        setAlert({ type: "error", message: "Terjadi kesalahan saat membeli chapter." });
+      }
+    },
+  });
 
-  if (chapterIndex === -1)
-    return <p className="mt-32 text-center">Chapter not found.</p>;
+  const handleBuyClick = () => {
+    setAlert({ type: "", message: "" });
+    setShowModal(true);
+  };
 
-  const chapter = novel.chapters[chapterIndex];
+  const handleConfirmBuy = () => {
+    unlockChapter({ queryKey: ["unlock", novelID, slug] });
+  };
 
-  const goToChapter = (direction) => {
-    const newIndex = direction === "next" ? chapterIndex + 1 : chapterIndex - 1;
-    const nextCh = novel.chapters[newIndex];
-
-    if (!nextCh) return;
-
-    if (nextCh.isPaid) {
-      setNextChapter(nextCh);
-      setShowModal(true);
-    } else {
-      navigate(`/novel/${novel.id}/chapter/${nextCh.number}`);
+  if (isError) {
+    if (error?.response?.status === 404) {
+      return (
+        <PageWrapper>
+          <div className="min-h-screen flex items-center justify-center">
+            <p className="text-red-500 text-center">Chapter tidak ditemukan.</p>
+          </div>
+        </PageWrapper>
+      );
     }
-  };
 
-  const handlePurchase = () => {
-    // Simulasi pembelian (nanti kamu bisa ganti dengan update coin dsb)
-    setShowModal(false);
-    navigate(`/novel/${novel.id}/chapter/${nextChapter.number}`);
-  };
+    if (error?.response?.status === 402) {
+      return (
+        <PageWrapper>
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Chapter Terkunci 🔒</h2>
+              <p className="mb-4">Chapter ini perlu dibeli untuk dibaca.</p>
+              <button
+                onClick={handleBuyClick}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Beli Chapter
+              </button>
+            </div>
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [chapterIndex]);
+            {showModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur">
+                <div className="bg-white p-6 rounded shadow-md max-w-md w-full text-center">
+                  <h2 className="text-xl font-semibold mb-2">Konfirmasi Pembelian</h2>
+
+                  {alert.message && (
+                    <div className="mb-3">
+                      <AlertMessage type={alert.type} message={alert.message} />
+                    </div>
+                  )}
+
+                  <p className="mb-4">Beli dan buka chapter ini sekarang?</p>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={handleConfirmBuy}
+                      disabled={isUnlocking}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {isUnlocking ? "Memproses..." : "Beli & Buka"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </PageWrapper>
+      );
+    }
+
+    return (
+      <PageWrapper>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-red-500 text-center">Terjadi kesalahan saat memuat chapter.</p>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <PageWrapper>
+        <p className="mt-32 text-center text-gray-500">Loading...</p>
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper>
-      <div className={`relative ${showModal ? "blur-sm pointer-events-none select-none" : ""}`}>
-        <div className="max-w-3xl mx-auto px-4 py-28">
-          <Link
-            to={`/novel/${novel.id}`}
-            className="text-blue-500 text-sm underline mb-4 inline-block"
-          >
-            ← Back to "{novel.title}"
-          </Link>
+      <div className="max-w-3xl mx-auto px-4 py-28">
+        <Link
+          to={`/novel/${chapter?.data?.novel_id}`}
+          className="text-blue-500 text-sm underline mb-4 inline-block"
+        >
+          ← Back
+        </Link>
 
-          <h1 className="text-3xl font-bold mb-1">{chapter.title}</h1>
-          <p className="text-gray-600 text-sm mb-6">
-            by {novel.author} · Chapter {chapter.number}
-          </p>
-
-          <div className="text-base leading-relaxed whitespace-pre-line mb-8">
-            {chapter.content}
+        {alert.message && (
+          <div className="mb-4">
+            <AlertMessage type={alert.type} message={alert.message} />
           </div>
+        )}
 
-          <div className="flex justify-between">
-            <button
-              onClick={() => goToChapter("prev")}
-              disabled={chapterIndex === 0}
-              className={`px-4 py-2 rounded ${chapterIndex === 0
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
+        <h1 className="text-3xl font-bold mb-1">{chapter?.data?.title}</h1>
+        <p className="text-gray-600 text-sm mb-6">
+          Chapter {chapter?.data?.chapter_number}
+        </p>
+
+        <div 
+          className="prose prose-base text-base leading-relaxed whitespace-pre-line mb-8" 
+          dangerouslySetInnerHTML={{ __html: chapter?.data?.content }} />
+
+        <div className="flex justify-between">
+          {chapter?.data?.prev_slug ? (
+            <Link
+              to={`/novel/${chapter?.data?.novel_id}/chapter/${chapter?.data?.prev_slug}`}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               ← Previous
-            </button>
+            </Link>
+          ) : (
+            <span className="px-4 py-2 bg-gray-200 text-gray-400 rounded cursor-not-allowed">
+              ← Previous
+            </span>
+          )}
 
-            <button
-              onClick={() => goToChapter("next")}
-              disabled={chapterIndex === novel.chapters.length - 1}
-              className={`px-4 py-2 rounded ${chapterIndex === novel.chapters.length - 1
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
+          {chapter?.data?.next_slug ? (
+            <Link
+              to={`/novel/${chapter?.data?.novel_id}/chapter/${chapter?.data?.next_slug}`}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Next →
-            </button>
-          </div>
+            </Link>
+          ) : (
+            <span className="px-4 py-2 bg-gray-200 text-gray-400 rounded cursor-not-allowed">
+              Next →
+            </span>
+          )}
         </div>
       </div>
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur">
-          <div className="bg-white p-6 rounded shadow-md max-w-md w-full text-center">
-            <h2 className="text-xl font-semibold mb-2">Chapter Terkunci 🔒</h2>
-            <p className="mb-4">
-              Chapter ini berbayar seharga{" "}
-              <span className="font-bold text-green-600">
-                {nextChapter.price} coin
-              </span>
-              . Apakah kamu ingin membeli?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handlePurchase}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Beli & Buka
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </PageWrapper>
   );
 };

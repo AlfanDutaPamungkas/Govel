@@ -34,7 +34,7 @@ type Storage struct {
 	Novels interface {
 		Create(context.Context, pgx.Tx, *Novel) error
 		CreateNovelAndInsertGenres(context.Context, *Novel, []int32) error
-		GetByID(context.Context, int64) (*Novel, error)
+		GetByID(context.Context, int64, int64) (*Novel, error)
 		GetAllNovel(context.Context, string, string) ([]*Novel, error)
 		GetNovelsFromGenreID(context.Context, int32) ([]*Novel, error)
 		Update(context.Context, *Novel) error

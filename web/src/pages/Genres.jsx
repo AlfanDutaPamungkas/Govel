@@ -1,16 +1,19 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
-import Navbar from "../components/Navbar";
-import { dummyNovels } from "../data/novel";
+import { listGenresAPI } from "../services/genres/genreServices";
+import { useQuery } from "@tanstack/react-query";
 
 const Genres = () => {
   const navigate = useNavigate();
 
-  const genres = [...new Set(dummyNovels.map((novel) => novel.genre))];
+  const {data: genres} = useQuery({
+    queryFn: listGenresAPI,
+    queryKey: ["list-genres"]
+  });
 
   const handleSelectGenre = (genre) => {
-    navigate(`/novel?genre=${encodeURIComponent(genre)}`);
+    navigate(`/novel?genre=${genre}`);
   };
 
   return (
@@ -22,13 +25,13 @@ const Genres = () => {
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {genres.map((genre, i) => (
+          {genres?.data.map((genre) => (
             <button
-              key={i}
-              onClick={() => handleSelectGenre(genre)}
+              key={genre?.id}
+              onClick={() => handleSelectGenre(genre?.id)}
               className="py-3 px-4 bg-blue-100 hover:bg-blue-200 rounded-lg text-center text-blue-800 font-medium transition"
             >
-              {genre}
+              {genre?.name?.charAt(0).toUpperCase() + genre?.name?.slice(1)}
             </button>
           ))}
         </div>
