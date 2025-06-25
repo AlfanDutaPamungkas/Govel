@@ -1,5 +1,5 @@
-# 📖 Govel API
-**Govel** is a RESTful API for an **e-novel platform**, where users can register, read novels, and manage their profiles, while admins control the content. The API is designed to support both free and premium content, enabling a scalable digital novel experience.
+# 📖 Govel
+**Govel** is a website for an **e-novel platform**, where users can register, read novels, and manage their profiles, while admins control the content. The API is designed to support both free and premium content, enabling a scalable digital novel experience.
 
 Govel is also **integrated with Xendit**, a payment gateway that allows users to unlock premium (locked) chapters instantly, giving **monetization opportunities** and **flexibility** for readers who want immediate access.
 
@@ -21,6 +21,7 @@ Govel is also **integrated with Xendit**, a payment gateway that allows users to
 
 ## ⚙️ Prerequisites
 - [Golang](https://golang.org/doc/install) v1.18 or higher
+- [React js (vite)](https://vite.dev/guide/) v1.19 or higher
 - [pgx](https://github.com/jackc/pgx) or any other postgres connection pool
 - [chi](github.com/go-chi/chi/v5) v5 or higher
 - [swag](https://github.com/swaggo/swag) for documentation
@@ -42,7 +43,8 @@ Govel is also **integrated with Xendit**, a payment gateway that allows users to
     ```bash
     go mod download
     ```
-4. Set up your environment variables:
+4. Set up your backend environment variables:
+    
     Create a `.env` file in the project root and specify the following variables:
     ```env
     DB_ADDR=
@@ -56,11 +58,36 @@ Govel is also **integrated with Xendit**, a payment gateway that allows users to
     XENDIT_SECRET_KEY=
     EXTERNAL_URL=
     ```
-5. Start the server:
+5. Start the backend server:
     ```bash
     go run cmd/api
     ```
     The API will be running at `http://localhost:3000`.
+
+---
+
+6.  Navigate to the frontend directory:
+    ```bash
+    cd web
+    ```
+
+7. Install dependencies:
+    ```bash
+    npm install
+    ```
+
+8. Set up your frontend environment variables:
+   
+    Create a `.env` file in the directory fronend (web) and specify this variable:
+    ```
+    VITE_API_URL=
+    ```
+
+9. Start the frontend server:
+    ```bash
+    npm run dev
+    ```
+    The website will be running at `http://localhost:5173`.
 
 ---
 
