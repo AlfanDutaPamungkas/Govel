@@ -98,11 +98,11 @@ const NovelDetail = () => {
           </Link>
         </div>
 
-        {novelData.chapters?.length === 0 ? (
+        {novelData?.chapters?.length === 0 ? (
           <p className="text-gray-500 italic">Belum ada chapter.</p>
         ) : (
           <ul className="space-y-4">
-            {novelData.chapters.map((chapter) => (
+            {novelData?.chapters?.map((chapter) => (
               <li
                 key={chapter.id}
                 className="border rounded p-4 shadow-sm hover:shadow"
