@@ -50,7 +50,7 @@ func main() {
 			exp: time.Hour * 24 * 3,
 			smtp: smtpConfig{
 				host:     env.GetEnv("SMTP_HOST", "smtp.example.com"),
-				port:     env.GetEnv("SMTP_PORT", "587"),
+				port:     env.GetEnv("SMTP_PORT", "465"),
 				username: env.GetEnv("SMTP_USERNAME", ""),
 				password: env.GetEnv("SMTP_PASSWORD", ""),
 			},
