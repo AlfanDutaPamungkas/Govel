@@ -79,7 +79,7 @@ func (m *SMTPMailer) sendTLS(to, msg string) error {
 
 	// Establish TLS connection manually
 	conn, err := tls.Dial("tcp", addr, &tls.Config{
-		InsecureSkipVerify: true, // ✅ disable only for dev/testing
+		InsecureSkipVerify: true,
 		ServerName:         m.smtpHost,
 	})
 	if err != nil {
