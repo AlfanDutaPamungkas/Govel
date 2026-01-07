@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	ratelimiter "github.com/AlfanDutaPamungkas/Govel/internal/rate_limiter"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -109,4 +110,37 @@ func (app *application) CheckPremium() func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func (app *application) RateLimiterMiddleware(limiter *ratelimiter.Limiter, keyFn func(*http.Request) string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			key := keyFn(r)
+
+			allowed, retryAfter := limiter.Allow(key)
+			if !allowed {
+				w.Header().Set("Retry-After", retryAfter.String())
+				app.tooManyRequestResponse(w, r, fmt.Errorf("rate limit exceeded"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func (app *application) KeyByIP(r *http.Request) string {
+	ip := r.RemoteAddr
+	if i := strings.LastIndex(ip, ":"); i != -1 {
+		ip = ip[:i]
+	}
+	return ip
+}
+
+func (app *application) KeyByUserID(r *http.Request) string {
+	user := getUserFromCtx(r)
+	if user == nil {
+		return "anonymous"
+	}
+	return "user:" + strconv.FormatInt(user.ID, 10)
 }

@@ -33,7 +33,13 @@ func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) paymentRequiredResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Warnf("payment required error", "method", r.Method, "path", r.URL.Path, "error", "prohibited")
+	app.logger.Warnf("payment required error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	writeJSONError(w, http.StatusPaymentRequired, err.Error())
+}
+
+func (app *application) tooManyRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Warnf("rate limit error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+
+	writeJSONError(w, http.StatusTooManyRequests, err.Error())
 }

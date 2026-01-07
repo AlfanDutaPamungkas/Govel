@@ -8,6 +8,7 @@ import (
 	"github.com/AlfanDutaPamungkas/Govel/internal/db"
 	"github.com/AlfanDutaPamungkas/Govel/internal/env"
 	"github.com/AlfanDutaPamungkas/Govel/internal/mailer"
+	ratelimiter "github.com/AlfanDutaPamungkas/Govel/internal/rate_limiter"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/xendit/xendit-go/v6"
 	"go.uber.org/zap"
@@ -69,6 +70,21 @@ func main() {
 			APISecret: env.GetEnv("API_SECRET", ""),
 		},
 		xenditSecret: env.GetEnv("XENDIT_SECRET_KEY", ""),
+		readLimiterConfig: ratelimiter.Config{
+			RequestPerTimeFrame: env.GetIntEnv("READ_RATE_LIMITER_REQUESTS_COUNTS", 0),
+			TimeFrame:           env.GetDurationEnv("RATE_LIMITER_TIME_FRAME", 30*time.Second),
+			Enabled:             env.GetBoolEnv("RATE_LIMITER_ENABLED", true),
+		},
+		authLimiterConfig: ratelimiter.Config{
+			RequestPerTimeFrame: env.GetIntEnv("AUTH_RATE_LIMITER_REQUESTS_COUNTS", 0),
+			TimeFrame:           env.GetDurationEnv("RATE_LIMITER_TIME_FRAME", 30*time.Second),
+			Enabled:             env.GetBoolEnv("RATE_LIMITER_ENABLED", true),
+		},
+		writeLimiterConfig: ratelimiter.Config{
+			RequestPerTimeFrame: env.GetIntEnv("WRITE_RATE_LIMITER_REQUESTS_COUNTS", 0),
+			TimeFrame:           env.GetDurationEnv("RATE_LIMITER_TIME_FRAME", 30*time.Second),
+			Enabled:             env.GetBoolEnv("RATE_LIMITER_ENABLED", true),
+		},
 	}
 
 	logger := zap.Must(zap.NewProduction()).Sugar()
@@ -114,6 +130,10 @@ func main() {
 
 	xnd := xendit.NewClient(cfg.xenditSecret)
 
+	readLimiter := ratelimiter.New(cfg.readLimiterConfig)
+	authLimiter := ratelimiter.New(cfg.authLimiterConfig)
+	writeLimiter := ratelimiter.New(cfg.writeLimiterConfig)
+
 	app := &application{
 		config:        cfg,
 		logger:        logger,
@@ -122,6 +142,9 @@ func main() {
 		authenticator: jwtAuthenticator,
 		cld:           cld,
 		xendit:        xnd,
+		readLimiter:  readLimiter,
+		authLimiter:  authLimiter,
+		writeLimiter: writeLimiter,
 	}
 
 	mux := app.mount()

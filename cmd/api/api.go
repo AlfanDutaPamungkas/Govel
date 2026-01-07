@@ -9,6 +9,7 @@ import (
 	"github.com/AlfanDutaPamungkas/Govel/internal/auth"
 	cld "github.com/AlfanDutaPamungkas/Govel/internal/cloudinary"
 	"github.com/AlfanDutaPamungkas/Govel/internal/mailer"
+	ratelimiter "github.com/AlfanDutaPamungkas/Govel/internal/rate_limiter"
 	"github.com/AlfanDutaPamungkas/Govel/internal/store"
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/go-chi/chi/v5"
@@ -27,19 +28,25 @@ type application struct {
 	authenticator auth.Authenticator
 	cld           *cloudinary.Cloudinary
 	xendit        *xendit.APIClient
+	readLimiter   *ratelimiter.Limiter
+	authLimiter   *ratelimiter.Limiter
+	writeLimiter  *ratelimiter.Limiter
 }
 
 type config struct {
-	addr             string
-	apiURL           string
-	env              string
-	db               dbConfig
-	mail             mailConfig
-	frontendURL      string
-	auth             authConfig
-	ForgotPassExp    time.Duration
-	cloudinaryConfig *cld.CloudinaryConfig
-	xenditSecret     string
+	addr               string
+	apiURL             string
+	env                string
+	db                 dbConfig
+	mail               mailConfig
+	frontendURL        string
+	auth               authConfig
+	ForgotPassExp      time.Duration
+	cloudinaryConfig   *cld.CloudinaryConfig
+	xenditSecret       string
+	readLimiterConfig  ratelimiter.Config
+	writeLimiterConfig ratelimiter.Config
+	authLimiterConfig  ratelimiter.Config
 }
 
 type authConfig struct {
@@ -79,7 +86,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH" ,"OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
@@ -99,6 +106,8 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/authentication", func(r chi.Router) {
+			r.Use(app.RateLimiterMiddleware(app.authLimiter, app.KeyByIP))
+
 			r.Post("/user", app.registerUserHandler)
 			r.Post("/token", app.createTokenHandler)
 			r.Post("/forgot-password", app.forgotPasswordHandler)
@@ -106,28 +115,34 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/users", func(r chi.Router) {
-			r.Put("/activate/{token}", app.activateUserHandler)
+			r.With(app.RateLimiterMiddleware(app.writeLimiter, app.KeyByIP)).Put("/activate/{token}", app.activateUserHandler)
 
 			r.Group(func(r chi.Router) {
 				r.Use(app.AuthTokenMiddleware)
 
 				r.Get("/", app.getProfileHandler)
-				r.Patch("/", app.updateUserHandler)
-				r.Patch("/image", app.changeUserImageHandler)
-				r.Patch("/change-password", app.changePasswordHandler)
-				r.Get("/bookmark", app.getBookmarkHandler)
-				r.Delete("/bookmark/{bookmarkID}", app.deleteBookmarkHandler)
+
+				r.Group(func(r chi.Router) {
+					r.Use(app.RateLimiterMiddleware(app.writeLimiter, app.KeyByUserID))
+
+					r.Patch("/", app.updateUserHandler)
+					r.Patch("/image", app.changeUserImageHandler)
+					r.Patch("/change-password", app.changePasswordHandler)
+					r.Get("/bookmark", app.getBookmarkHandler)
+					r.Delete("/bookmark/{bookmarkID}", app.deleteBookmarkHandler)
+				})
 			})
 
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.AuthTokenMiddleware)
+				r.Use(app.RateLimiterMiddleware(app.readLimiter, app.KeyByUserID))
 
 				r.Get("/", app.getUserHandler)
 			})
 		})
 
 		r.Route("/genres", func(r chi.Router) {
-			r.Get("/", app.getAllGenreHandler)
+			r.With(app.RateLimiterMiddleware(app.readLimiter, app.KeyByIP)).Get("/", app.getAllGenreHandler)
 
 			r.Group(func(r chi.Router) {
 				r.Group(func(r chi.Router) {
@@ -137,7 +152,7 @@ func (app *application) mount() http.Handler {
 
 				r.Route("/{genreID}", func(r chi.Router) {
 					r.Use(app.genresContextMiddleware)
-					r.Get("/novels", app.getNovelsFromGenreID)
+					r.With(app.RateLimiterMiddleware(app.readLimiter, app.KeyByIP)).Get("/novels", app.getNovelsFromGenreID)
 
 					r.Group(func(r chi.Router) {
 						r.Use(app.AuthTokenMiddleware)
@@ -150,36 +165,39 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/novels", func(r chi.Router) {
-			r.Get("/", app.getAllNovelHandler)
+			r.With(app.RateLimiterMiddleware(app.readLimiter, app.KeyByIP)).Get("/", app.getAllNovelHandler)
 
 			r.Group(func(r chi.Router) {
 				r.Use(app.AuthTokenMiddleware)
-	
+
 				r.With(app.AdminOnly()).Post("/", app.createNovelHandler)
-	
+
 				r.Route("/{novelID}", func(r chi.Router) {
 					r.Use(app.novelsContextMiddleware)
-	
-					r.Get("/", app.getNovelHandler)
-	
+
+					r.With(app.RateLimiterMiddleware(app.readLimiter, app.KeyByUserID)).Get("/", app.getNovelHandler)
+
 					r.With(app.AdminOnly()).Patch("/", app.updateNovelHandler)
 					r.With(app.AdminOnly()).Patch("/image", app.changeNovelImageHandler)
 					r.With(app.AdminOnly()).Delete("/", app.deleteNovelHandler)
 
-					r.Post("/bookmark", app.createBookmarkHandler)
-	
+					r.With(app.RateLimiterMiddleware(app.writeLimiter, app.KeyByUserID)).Post("/bookmark", app.createBookmarkHandler)
+
 					r.Route("/chapters", func(r chi.Router) {
 						r.With(app.AdminOnly()).Post("/", app.createChapterHandler)
-	
+
 						r.Route("/{slug}", func(r chi.Router) {
 							r.Use(app.chaptersContextMiddleware)
-	
-							r.With(app.CheckPremium()).Get("/", app.getDetailChapterHandler)
-	
+
+							r.With(
+								app.CheckPremium(),
+								app.RateLimiterMiddleware(app.readLimiter, app.KeyByUserID),
+							).Get("/", app.getDetailChapterHandler)
+
 							r.With(app.AdminOnly()).Patch("/", app.updateChapterHandler)
 							r.With(app.AdminOnly()).Delete("/", app.deleteChapterHandler)
-	
-							r.Post("/unlock", app.unlockChapterHandler)
+
+							r.With(app.RateLimiterMiddleware(app.writeLimiter, app.KeyByUserID)).Post("/unlock", app.unlockChapterHandler)
 						})
 					})
 				})
